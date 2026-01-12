@@ -1,35 +1,81 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {Location, initializeLocData, getLocArray} from "../../components/LocalData";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+export default function TabsLayout() {
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  // Load active locations from AsyncStorage.
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    async function loadLocations() {
+      try {
+        await initializeLocData();
+        const locArray = await getLocArray();
+        setLocations(locArray.filter(loc => loc.isActive));
+        setReady(true);
+      } catch (err) {
+        console.error("Failed to load locations:", err);
+      }
+    }
+    loadLocations();
+  }, []);
+  if (!ready) return null; // TODO: Add splash screen.
 
   return (
     <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+        screenOptions={{
+            tabBarActiveTintColor: "#82baff",
+            headerStyle: { backgroundColor: "#25292e" },
+            headerShadowVisible: false,
+            headerTintColor: "#fff",
+            tabBarStyle: { backgroundColor: "#25292e" },
         }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
+    >
+      <Tabs.Screen 
+      name="index" 
+      options={{
+        title: "Home",
+        headerTitle: "Home",
+        tabBarIcon: ({focused, color}) => (
+            <Ionicons 
+                name={focused ? "home-sharp" : "home-outline"}
+                color={color}
+                size={30} 
+            />
+        ),
+      }} />
+      {locations.map((loc) => (
+        <Tabs.Screen
+          name={loc.id}
+          options={{
+            title: loc.locationName,
+            headerTitle: loc.locationName, 
+            tabBarIcon: ({ focused, color }) => (
+              <Ionicons
+                name={focused ? "clipboard-sharp" : "clipboard-outline"}
+                color={color}
+                size={30}
+              />
+            ),
+          }}
+          initialParams={{ locID: loc.id }} 
+        />
+      ))}
+      <Tabs.Screen 
+      name="settings" 
+      options={{
+        title: "Settings",
+        headerTitle: "Settings",
+        tabBarIcon: ({focused, color}) => (
+            <Ionicons 
+                name={focused ? "settings-sharp" : "settings-outline"}
+                color={color}
+                size={30} 
+            />
+        ),
+      }} />
     </Tabs>
   );
 }

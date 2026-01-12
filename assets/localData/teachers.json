@@ -1,0 +1,26 @@
+[
+  {
+    "id": "tea001",
+    "firstName": "Ozsham",
+    "lastName": "Teejhur",
+    "dob": "1985-04-12",
+    "days": ["Mon", "Wed", "Fri"],
+    "currentLocation": "none"
+  },
+  {
+    "id": "tea002",
+    "firstName": "Johnteach",
+    "lastName": "Doemr",
+    "dob": "1990-02-11",
+    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    "currentLocation": "none"
+  },
+  {
+    "id": "tea003",
+    "firstName": "Adam",
+    "lastName": "Apple",
+    "dob": "2005-08-08",
+    "days": ["Mon", "Tue", "Wed", "Thu"],
+    "currentLocation": "none"
+  }
+]

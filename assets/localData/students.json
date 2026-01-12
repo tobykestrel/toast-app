@@ -1,0 +1,42 @@
+[
+  {
+    "id": "stu001",
+    "firstName": "Alice",
+    "lastName": "Aurora",
+    "dob": "2019-12-23",
+    "days": ["Tue", "Wed", "Thur"],
+    "currentLocation": "none"
+  },
+  {
+    "id": "stu002",
+    "firstName": "Billy",
+    "lastName": "Boeman",
+    "dob": "2020-09-01",
+    "days": ["Mon", "Tue", "Thur","Fri"],
+    "currentLocation": "none"
+  },
+  {
+    "id": "stu003",
+    "firstName": "Charlie",
+    "lastName": "Charm",
+    "dob": "2021-03-15",
+    "days": ["Mon", "Wed", "Fri"],
+    "currentLocation": "none"
+  },
+  {
+    "id": "stu004",
+    "firstName": "David",
+    "lastName": "Davies",
+    "dob": "2020-07-22",
+    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    "currentLocation": "none"
+  },
+  {
+    "id": "stu005",
+    "firstName": "Evan",
+    "lastName": "Earls",
+    "dob": "2018-02-02",
+    "days": ["Tue", "Wed", "Thu", "Fri"],
+    "currentLocation": "none"
+  }
+]

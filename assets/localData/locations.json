@@ -1,0 +1,20 @@
+[
+  {
+    "id": "loc001",
+    "locationName": "Cafeteria",
+    "isActive": true,
+    "isDefault": true
+  },
+  {
+    "id": "loc002",
+    "locationName": "Outside",
+    "isActive": true,
+    "isDefault": false
+  },
+  {
+    "id": "loc003",
+    "locationName": "Gym",
+    "isActive": true,
+    "isDefault": false
+  }
+]
