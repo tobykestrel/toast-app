@@ -5,10 +5,10 @@ import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-type ItemParams = {title: string};
-const ListItem = ({title}: ItemParams) => (
-  <View style={styles.item}>
-    <Text style={styles.title}>{title}</Text>
+type ItemParams = {listItemText: string};
+const ListItem = ({listItemText}: ItemParams) => (
+  <View style={styles.listItem}>
+    <Text style={styles.listItemText}>{listItemText}</Text>
   </View>
 );
 
@@ -38,8 +38,8 @@ export default function Index() {
       <SafeAreaView style={styles.container}>
         <FlatList
           data={students}
-          renderItem={({ item }) => <ListItem title={item.firstName + " " + item.lastName} />}
-          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <ListItem listItemText={item.firstName + " " + item.lastName} />}
+          keyExtractor={(listItem) => listItem.id}
         />
       </SafeAreaView>
     </SafeAreaProvider>
@@ -52,13 +52,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#25292e',
     flex: 1,
   },
-  item: {
+  listItem: {
     backgroundColor: '#3c4755',
     padding: 5,
     marginVertical: 1,
     marginHorizontal: 5,
   },
-  title: {
+  listItemText: {
     fontSize: 32,
   },
 })

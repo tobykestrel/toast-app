@@ -1,3 +1,5 @@
+// Add confirmation from other devices in gym.
+
 // Imports.
 import LclLocations from "../assets/localData/locations.json";
 import LclSettings from "../assets/localData/settings.json";
@@ -79,11 +81,11 @@ export async function updateStnData(updater: (settings: Settings) => Settings) {
 }
 
 // Update a person's current location.
-export async function updateStuLocation(stuID: string, newLocation: string) {
+export async function updateStuLocation(stuID: string, newLocID: string) {
   await updateStuData(students => {
     const student = students.find(s => s.id === stuID);
     if (!student) { throw new Error(`Student ${stuID} not found`); }
-    student.currentLocation = newLocation;
+    student.currentLocID = newLocID;
     return students;
   });
 }

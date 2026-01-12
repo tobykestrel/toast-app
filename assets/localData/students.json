@@ -5,7 +5,7 @@
     "lastName": "Aurora",
     "dob": "2019-12-23",
     "days": ["Tue", "Wed", "Thur"],
-    "currentLocation": "none"
+    "currentLocID": "none"
   },
   {
     "id": "stu002",
@@ -13,7 +13,7 @@
     "lastName": "Boeman",
     "dob": "2020-09-01",
     "days": ["Mon", "Tue", "Thur","Fri"],
-    "currentLocation": "none"
+    "currentLocID": "loc001"
   },
   {
     "id": "stu003",
@@ -21,7 +21,7 @@
     "lastName": "Charm",
     "dob": "2021-03-15",
     "days": ["Mon", "Wed", "Fri"],
-    "currentLocation": "none"
+    "currentLocID": "loc002"
   },
   {
     "id": "stu004",
@@ -29,7 +29,7 @@
     "lastName": "Davies",
     "dob": "2020-07-22",
     "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
-    "currentLocation": "none"
+    "currentLocID": "loc001"
   },
   {
     "id": "stu005",
@@ -37,6 +37,6 @@
     "lastName": "Earls",
     "dob": "2018-02-02",
     "days": ["Tue", "Wed", "Thu", "Fri"],
-    "currentLocation": "none"
+    "currentLocID": "loc003"
   }
 ]
