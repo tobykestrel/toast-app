@@ -27,9 +27,9 @@ const getLocationName = (locID: string): string => {
   return locationMap[locID] || locID;
 };
 
-const CustomCheckbox = ({ value, onValueChange }: { value: boolean; onValueChange: () => void }) => (
+const CustomCheckbox = ({ value, onValueChange, color }: { value: boolean; onValueChange: () => void, color?: string }) => (
   <TouchableOpacity
-    style={[styles.customCheckbox, value && styles.customCheckboxChecked]}
+    style={[styles.customCheckbox, value && styles.customCheckboxChecked, color && { backgroundColor: color }, color && { borderColor: color }]}
     onPress={onValueChange}
   >
     {value && <Text style={styles.checkmark}>✓</Text>}
@@ -79,6 +79,7 @@ const HomeStatsBar = ({
             <CustomCheckbox
               value={selectedGrades.has(grade)}
               onValueChange={() => onToggleGrade(grade)}
+              color={getGradeColor(grade)}
             />
             <Text style={styles.gradeLabel}>{getGradeLabel(grade)}</Text>
           </View>
