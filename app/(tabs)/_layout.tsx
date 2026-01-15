@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Location, initializeLocData, getLocArray } from "../../components/LocalData";
+import { Location, getLocArray, initializeLocData } from "../../components/LocalData";
 
 export default function TabsLayout() {
 
@@ -61,7 +61,6 @@ export default function TabsLayout() {
               />
             ),
           }}
-          initialParams={{ locID: loc.id }} 
         />
       ))}
       <Tabs.Screen 

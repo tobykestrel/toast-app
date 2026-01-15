@@ -1,12 +1,15 @@
 // Imports
-import {Student, initializeStuData, getStuArrayByLocID, getStuArrayByLocIDAwaiting} from "../../components/LocalData";
-import AwaitingStudentsList from "../../components/AwaitingStudentsList";
-import MoveStudentModal from "../../components/MoveStudentModal";
 import { useFocusEffect } from '@react-navigation/native';
-import { useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState, useCallback } from 'react';
-import { FlatList, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import React, { useCallback, useEffect, useState } from 'react';
+import { FlatList, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import AwaitingStudentsList from "./AwaitingStudentsList";
+import { Student, getStuArrayByLocID, getStuArrayByLocIDAwaiting, initializeStuData } from "./LocalData";
+import MoveStudentModal from "./MoveStudentModal";
+
+type LocationScreenProps = {
+  locID: string;
+};
 
 type StudentParams = {student: Student, onMove: (student: Student) => void};
 const StudentItem = ({student, onMove}: StudentParams) => (
@@ -24,10 +27,7 @@ const StudentItem = ({student, onMove}: StudentParams) => (
   </TouchableOpacity>
 );
 
-export default function LocationScreen() {
-  const { locID } = useLocalSearchParams();
-  const locationID = typeof locID === 'string' ? locID : locID?.[0] || 'unknown';
-  
+export default function LocationScreen({ locID }: LocationScreenProps) {
   // Load students at this location from AsyncStorage.
   const [students, setStudents] = useState<Student[]>([]);
   const [awaitingStudents, setAwaitingStudents] = useState<Student[]>([]);
@@ -37,12 +37,12 @@ export default function LocationScreen() {
   
   const loadStudents = async () => {
     try {
-      const stuArray = await getStuArrayByLocID(locationID);
-      const awaitingArray = await getStuArrayByLocIDAwaiting(locationID);
+      const stuArray = await getStuArrayByLocID(locID);
+      const awaitingArray = await getStuArrayByLocIDAwaiting(locID);
       setStudents(stuArray);
       setAwaitingStudents(awaitingArray);
     } catch (err) {
-      console.error(`Failed to load ${locationID} students:`, err);
+      console.error(`Failed to load ${locID} students:`, err);
     } finally {
       setLoading(false);
     }
@@ -54,18 +54,18 @@ export default function LocationScreen() {
         await initializeStuData();
         await loadStudents();
       } catch (err) {
-        console.error(`Failed to initialize ${locationID}:`, err);
+        console.error(`Failed to initialize ${locID}:`, err);
         setLoading(false);
       }
     }
     initializeAndLoad();
-  }, [locationID]);
+  }, [locID]);
 
   // Refresh data whenever this tab comes into focus
   useFocusEffect(
     useCallback(() => {
       loadStudents();
-    }, [locationID])
+    }, [locID])
   );
 
   const handleOpenModal = (student: Student) => {
@@ -82,7 +82,7 @@ export default function LocationScreen() {
     loadStudents();
   };
 
-  if (loading) { return <Text>Loading students in {locationID}...</Text>; }
+  if (loading) { return <Text>Loading students in {locID}...</Text>; }
 
   return (
     <SafeAreaProvider>
