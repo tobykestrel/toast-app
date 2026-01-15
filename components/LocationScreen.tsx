@@ -1,7 +1,7 @@
 // Imports
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AwaitingStudentsList from "./AwaitingStudentsList";
 import { Student, Teacher, getStuArrayByLocID, getStuArrayByLocIDAwaiting, getTeaArrayByLocID, initializeStuData } from "./LocalData";
@@ -10,6 +10,16 @@ import MoveStudentModal from "./MoveStudentModal";
 type LocationScreenProps = {
   locID: string;
 };
+
+// Custom checkbox
+const CustomCheckbox = ({ value, onValueChange, color }: { value: boolean; onValueChange: () => void; color?: string }) => (
+  <TouchableOpacity
+    style={[styles.locCheckbox, { borderColor: color || '#aaa' }, value && { backgroundColor: color || '#48bb78', borderColor: color || '#48bb78' }]}
+    onPress={onValueChange}
+  >
+    {value && <Text style={styles.locCheckmark}>✓</Text>}
+  </TouchableOpacity>
+);
 
 // Get color for grade border
 const getGradeColor = (grade: number): string => {
@@ -40,7 +50,12 @@ const StudentItem = ({ student, isSelecting, isSelected, onPress, onMove }: Stud
     onLongPress={!isSelecting ? onPress : undefined}
     delayLongPress={500}
   >
-    <Text style={styles.itemText}>{student.firstName} {student.lastName}</Text>
+    <View style={{ flex: 1 }}>
+      <Text style={styles.itemText}>
+        {student.firstName} {student.lastName}
+        {student.hasMeds && <Text style={styles.medsCross}> ✚</Text>}
+      </Text>
+    </View>
     {isSelecting ? (
       <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
         {isSelected && <Text style={styles.checkmark}>✓</Text>}
@@ -108,9 +123,15 @@ type StatsHeaderProps = {
   studentsWithMeds: number;
   showStudents: boolean;
   onToggleView: (value: boolean) => void;
+  selectedGrades: Set<number>;
+  onToggleGrade: (grade: number) => void;
 };
 
-const StatsHeader = ({ studentCount, teacherCount, studentsWithMeds, showStudents, onToggleView }: StatsHeaderProps) => {
+const getGradeLabel = (grade: number): string => {
+  return `${grade}${grade === 2 ? 'nd' : grade === 3 ? 'rd' : 'th'} Grade`;
+};
+
+const StatsHeader = ({ studentCount, teacherCount, studentsWithMeds, showStudents, onToggleView, selectedGrades, onToggleGrade }: StatsHeaderProps) => {
   const ratio = teacherCount > 0 ? (studentCount / teacherCount).toFixed(1) : 'N/A';
   
   return (
@@ -144,6 +165,22 @@ const StatsHeader = ({ studentCount, teacherCount, studentsWithMeds, showStudent
           </>
         )}
       </View>
+
+      {showStudents && (
+        <View style={styles.gradesContainer}>
+          {[2, 3, 4].map((grade) => (
+            <View key={grade} style={styles.gradeCheckbox}>
+              <CustomCheckbox
+                value={selectedGrades.has(grade)}
+                onValueChange={() => onToggleGrade(grade)}
+                color={getGradeColor(grade)}
+              />
+              <Text style={styles.gradeLabel}>{getGradeLabel(grade)}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
       <View style={styles.toggleContainer}>
         <Text style={styles.toggleLabel}>{showStudents ? 'Students' : 'Teachers'}</Text>
         <Switch
@@ -168,6 +205,8 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
   const [selectedTeachers, setSelectedTeachers] = useState<Set<string>>(new Set());
   const [modalVisible, setModalVisible] = useState(false);
   const [showStudents, setShowStudents] = useState(true);
+  const [selectedGrades, setSelectedGrades] = useState<Set<number>>(new Set([2, 3, 4]));
+  const [searchQuery, setSearchQuery] = useState('');
   const justActivatedIDRef = useRef<string | null>(null);
   
   const loadStudents = async () => {
@@ -280,26 +319,56 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
 
   if (loading) { return <Text>Loading students in {locID}...</Text>; }
 
-  // Sort students and teachers alphabetically by first name, then last name
-  const sortedStudents = [...students].sort((a, b) => {
-    const firstNameCompare = a.firstName.localeCompare(b.firstName);
-    return firstNameCompare !== 0 ? firstNameCompare : a.lastName.localeCompare(b.lastName);
-  });
+  // Sort students and teachers alphabetically by first name, then last name, filtered by grade
+  const sortedStudents = [...students]
+    .filter(s => selectedGrades.has(s.grade))
+    .filter(s => {
+      if (!searchQuery.trim()) return true;
+      const query = searchQuery.toLowerCase();
+      return s.firstName.toLowerCase().includes(query) || s.lastName.toLowerCase().includes(query);
+    })
+    .sort((a, b) => {
+      const firstNameCompare = a.firstName.localeCompare(b.firstName);
+      return firstNameCompare !== 0 ? firstNameCompare : a.lastName.localeCompare(b.lastName);
+    });
 
-  const sortedTeachers = [...teachers].sort((a, b) => {
-    const firstNameCompare = a.firstName.localeCompare(b.firstName);
-    return firstNameCompare !== 0 ? firstNameCompare : a.lastName.localeCompare(b.lastName);
-  });
+  const sortedTeachers = [...teachers]
+    .filter(t => {
+      if (!searchQuery.trim()) return true;
+      const query = searchQuery.toLowerCase();
+      return t.firstName.toLowerCase().includes(query) || t.lastName.toLowerCase().includes(query);
+    })
+    .sort((a, b) => {
+      const firstNameCompare = a.firstName.localeCompare(b.firstName);
+      return firstNameCompare !== 0 ? firstNameCompare : a.lastName.localeCompare(b.lastName);
+    });
 
-  const sortedAwaitingStudents = [...awaitingStudents].sort((a, b) => {
-    const firstNameCompare = a.firstName.localeCompare(b.firstName);
-    return firstNameCompare !== 0 ? firstNameCompare : a.lastName.localeCompare(b.lastName);
-  });
+  const sortedAwaitingStudents = [...awaitingStudents]
+    .filter(s => selectedGrades.has(s.grade))
+    .filter(s => {
+      if (!searchQuery.trim()) return true;
+      const query = searchQuery.toLowerCase();
+      return s.firstName.toLowerCase().includes(query) || s.lastName.toLowerCase().includes(query);
+    })
+    .sort((a, b) => {
+      const firstNameCompare = a.firstName.localeCompare(b.firstName);
+      return firstNameCompare !== 0 ? firstNameCompare : a.lastName.localeCompare(b.lastName);
+    });
 
   const selectedStudentObjects = students.filter(s => selectedStudents.has(s.id));
   const selectedTeacherObjects = teachers.filter(t => selectedTeachers.has(t.id));
-  const studentsWithMeds = students.filter(s => s.hasMeds).length;
+  const studentsWithMeds = sortedStudents.filter(s => s.hasMeds).length;
   const currentSelection = showStudents ? selectedStudents : selectedTeachers;
+
+  const handleToggleGrade = (grade: number) => {
+    const newGrades = new Set(selectedGrades);
+    if (newGrades.has(grade)) {
+      newGrades.delete(grade);
+    } else {
+      newGrades.add(grade);
+    }
+    setSelectedGrades(newGrades);
+  };
 
   return (
     <SafeAreaProvider>
@@ -313,13 +382,22 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
           />
         ) : (
           <StatsHeader
-            studentCount={students.length}
-            teacherCount={teachers.length}
+            studentCount={sortedStudents.length}
+            teacherCount={sortedTeachers.length}
             studentsWithMeds={studentsWithMeds}
             showStudents={showStudents}
             onToggleView={setShowStudents}
+            selectedGrades={selectedGrades}
+            onToggleGrade={handleToggleGrade}
           />
         )}
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search by name..."
+          placeholderTextColor="#888"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
         <FlatList
           data={showStudents ? sortedStudents : sortedTeachers}
           renderItem={({ item }) => showStudents ? (
@@ -358,6 +436,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#25292e',
     flex: 1,
   },
+  searchBar: {
+    backgroundColor: '#3c4755',
+    color: '#fff',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginHorizontal: 12,
+    marginVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#555',
+    fontSize: 14,
+  },
   statsBox: {
     backgroundColor: '#3c4755',
     flexDirection: 'row',
@@ -386,15 +476,44 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#48bb78',
   },
-  toggleContainer: {
+  gradesContainer: {
+    marginBottom: 12,
+    paddingHorizontal: 5,
+  },
+  gradeCheckbox: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginVertical: 4,
+  },
+  gradeLabel: {
+    color: '#aaa',
+    fontSize: 12,
+    marginLeft: 8,
+  },
+  locCheckbox: {
+    width: 16,
+    height: 16,
+    borderWidth: 2,
+    borderRadius: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  locCheckmark: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  toggleContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
     marginLeft: 15,
+    gap: 3
   },
   toggleLabel: {
     fontSize: 12,
     color: '#aaa',
     marginRight: 8,
+    marginTop: 14,
   },
   selectionHeader: {
     backgroundColor: '#3c4755',
@@ -443,13 +562,18 @@ const styles = StyleSheet.create({
   },
   itemContainerSelected: {
     backgroundColor: 'rgba(72, 187, 120, 0.2)',
-    borderWidth: .5,
+    borderWidth: .3,
     borderColor: '#48bb78',
   },
   itemText: {
     fontSize: 16,
     color: '#fff',
     flex: 1,
+  },
+  medsCross: {
+    color: '#ef4444',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   checkbox: {
     width: 28,

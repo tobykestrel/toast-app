@@ -9,7 +9,8 @@
     "hasMeds": false,
     "currentLocID": "loc002",
     "previousLocID": "none",
-    "awaitingConfirmation": false
+    "awaitingConfirmation": false,
+    "present": true
   },
   {
     "id": "stu002",
@@ -18,10 +19,11 @@
     "dob": "2020-09-01",
     "days": ["Mon", "Tue", "Thur","Fri"],
     "grade": 3,
-    "hasMeds": false,
-    "currentLocID": "none",
+    "hasMeds": true,
+    "currentLocID": "loc003",
     "previousLocID": "none",
-    "awaitingConfirmation": false
+    "awaitingConfirmation": false,
+    "present": true
   },
   {
     "id": "stu003",
@@ -31,9 +33,10 @@
     "days": ["Mon", "Wed", "Fri"],
     "grade": 3,
     "hasMeds": false,
-    "currentLocID": "loc002",
+    "currentLocID": "none",
     "previousLocID": "none",
-    "awaitingConfirmation": false
+    "awaitingConfirmation": false,
+    "present": false
   },
   {
     "id": "stu004",
@@ -45,7 +48,8 @@
     "hasMeds": true,
     "currentLocID": "loc001",
     "previousLocID": "none",
-    "awaitingConfirmation": false
+    "awaitingConfirmation": false,
+    "present": true
   },
   {
     "id": "stu005",
@@ -57,7 +61,8 @@
     "hasMeds": false,
     "currentLocID": "loc003",
     "previousLocID": "none",
-    "awaitingConfirmation": false
+    "awaitingConfirmation": false,
+    "present": true
   },
   {
     "id": "stu006",
@@ -69,7 +74,8 @@
     "hasMeds": true,
     "currentLocID": "loc001",
     "previousLocID": "none",
-    "awaitingConfirmation": false
+    "awaitingConfirmation": false,
+    "present": true
   },
   {
     "id": "stu007",
@@ -81,7 +87,8 @@
     "hasMeds": false,
     "currentLocID": "loc002",
     "previousLocID": "none",
-    "awaitingConfirmation": false
+    "awaitingConfirmation": false,
+    "present": true
   },
   {
     "id": "stu008",
@@ -93,7 +100,8 @@
     "hasMeds": false,
     "currentLocID": "loc003",
     "previousLocID": "none",
-    "awaitingConfirmation": false
+    "awaitingConfirmation": false,
+    "present": true
   },
   {
     "id": "stu009",
@@ -102,10 +110,11 @@
     "dob": "2019-08-12",
     "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
     "grade": 4,
-    "hasMeds": true,
+    "hasMeds": false,
     "currentLocID": "loc001",
     "previousLocID": "none",
-    "awaitingConfirmation": false
+    "awaitingConfirmation": false,
+    "present": true
   },
   {
     "id": "stu010",
@@ -114,9 +123,10 @@
     "dob": "2020-04-25",
     "days": ["Wed", "Thu", "Fri"],
     "grade": 3,
-    "hasMeds": false,
+    "hasMeds": true,
     "currentLocID": "loc002",
     "previousLocID": "none",
-    "awaitingConfirmation": false
+    "awaitingConfirmation": false,
+    "present": true
   }
 ]
