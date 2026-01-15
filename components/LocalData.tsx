@@ -90,13 +90,16 @@ export async function updateStnData(updater: (settings: Settings) => Settings) {
 }
 
 // Student data updaters.
-export async function updateStuLocation(stuID: string, newLocID: string) {
+export async function updateStuLocation(stuID: string | string[], newLocID: string) {
   await updateStuData(students => {
-    const student = students.find(s => s.id === stuID);
-    if (!student) { throw new Error(`Student ${stuID} not found`); }
-    student.previousLocID = student.currentLocID;
-    student.currentLocID = newLocID;
-    student.awaitingConfirmation = true;
+    const stuIDs = Array.isArray(stuID) ? stuID : [stuID];
+    stuIDs.forEach(id => {
+      const student = students.find(s => s.id === id);
+      if (!student) { throw new Error(`Student ${id} not found`); }
+      student.previousLocID = student.currentLocID;
+      student.currentLocID = newLocID;
+      student.awaitingConfirmation = true;
+    });
     return students;
   });
 }

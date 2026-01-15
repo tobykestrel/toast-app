@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native';
-import { Location, Student, updateStuLocation, getLocArray } from './LocalData';
+import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { getLocArray, Location, Student, Teacher, updateStuLocation, updateTeaLocation } from './LocalData';
 
-type MoveStudentModalProps = {
+type MoveItemModalProps = {
   visible: boolean;
-  student: Student | null;
+  students: (Student | Teacher)[];
   onClose: () => void;
-  onMove: (studentId: string, locID: string) => void;
+  onMove: () => void;
 };
 
-export default function MoveStudentModal({ visible, student, onClose, onMove }: MoveStudentModalProps) {
+export default function MoveStudentModal({ visible, students, onClose, onMove }: MoveItemModalProps) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +22,9 @@ export default function MoveStudentModal({ visible, student, onClose, onMove }: 
   const loadLocations = async () => {
     try {
       const locs = await getLocArray();
-      setLocations(locs.filter(loc => loc.isActive && student?.currentLocID !== loc.id));
+      // Filter out the current location(s) - if all items are at the same location, filter that one
+      const currentLocs = new Set(students.map(s => s.currentLocID));
+      setLocations(locs.filter(loc => loc.isActive && !currentLocs.has(loc.id)));
     } catch (err) {
       console.error('Failed to load locations:', err);
     } finally {
@@ -30,19 +32,33 @@ export default function MoveStudentModal({ visible, student, onClose, onMove }: 
     }
   };
 
-  const handleMoveStudent = async (locID: string) => {
-    if (student) {
+  const handleMoveItems = async (locID: string) => {
+    if (students.length > 0) {
       try {
-        await updateStuLocation(student.id, locID);
-        onMove(student.id, locID);
+        // Check if we're dealing with students or teachers
+        const isStudent = (item: any) => 'hasMeds' in item;
+        
+        for (const item of students) {
+          if (isStudent(item)) {
+            const studentIds = (students as Student[]).map(s => s.id);
+            await updateStuLocation(studentIds, locID);
+          } else {
+            // Handle teachers
+            for (const teacher of students as Teacher[]) {
+              await updateTeaLocation(teacher.id, locID);
+            }
+          }
+        }
+        
+        onMove();
         onClose();
       } catch (err) {
-        console.error(`Failed to move student ${student.id}:`, err);
+        console.error(`Failed to move items:`, err);
       }
     }
   };
 
-  if (!student) return null;
+  if (students.length === 0) return null;
 
   return (
     <Modal
@@ -60,7 +76,7 @@ export default function MoveStudentModal({ visible, student, onClose, onMove }: 
 
           {/* Title */}
           <Text style={styles.title}>
-            Move {student.firstName} {student.lastName} to...
+            Move {students.length !== 1 ? `${students.length} Items` : `${students[0].firstName} ${students[0].lastName}`} to...
           </Text>
 
           {/* Locations List */}
@@ -69,7 +85,7 @@ export default function MoveStudentModal({ visible, student, onClose, onMove }: 
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.locationOption}
-                onPress={() => handleMoveStudent(item.id)}
+                onPress={() => handleMoveItems(item.id)}
               >
                 <Text style={styles.locationText}>{item.locationName}</Text>
               </TouchableOpacity>

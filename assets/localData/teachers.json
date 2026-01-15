@@ -5,7 +5,7 @@
     "lastName": "Teejhur",
     "dob": "1985-04-12",
     "days": ["Mon", "Wed", "Fri"],
-    "currentLocID": "none"
+    "currentLocID": "loc001"
   },
   {
     "id": "tea002",
@@ -13,7 +13,7 @@
     "lastName": "Doemr",
     "dob": "1990-02-11",
     "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
-    "currentLocID": "none"
+    "currentLocID": "loc001"
   },
   {
     "id": "tea003",
@@ -21,6 +21,6 @@
     "lastName": "Apple",
     "dob": "2005-08-08",
     "days": ["Mon", "Tue", "Wed", "Thu"],
-    "currentLocID": "none"
+    "currentLocID": "loc002"
   }
 ]

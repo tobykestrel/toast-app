@@ -5,6 +5,8 @@
     "lastName": "Aurora",
     "dob": "2019-12-23",
     "days": ["Tue", "Wed", "Thur"],
+    "grade": 2,
+    "hasMeds": false,
     "currentLocID": "loc002",
     "previousLocID": "none",
     "awaitingConfirmation": false
@@ -15,6 +17,8 @@
     "lastName": "Boeman",
     "dob": "2020-09-01",
     "days": ["Mon", "Tue", "Thur","Fri"],
+    "grade": 3,
+    "hasMeds": false,
     "currentLocID": "none",
     "previousLocID": "none",
     "awaitingConfirmation": false
@@ -25,6 +29,8 @@
     "lastName": "Charm",
     "dob": "2021-03-15",
     "days": ["Mon", "Wed", "Fri"],
+    "grade": 3,
+    "hasMeds": false,
     "currentLocID": "loc002",
     "previousLocID": "none",
     "awaitingConfirmation": false
@@ -35,6 +41,8 @@
     "lastName": "Davies",
     "dob": "2020-07-22",
     "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    "grade": 3,
+    "hasMeds": true,
     "currentLocID": "loc001",
     "previousLocID": "none",
     "awaitingConfirmation": false
@@ -45,6 +53,8 @@
     "lastName": "Earls",
     "dob": "2018-02-02",
     "days": ["Tue", "Wed", "Thu", "Fri"],
+    "grade": 4,
+    "hasMeds": false,
     "currentLocID": "loc003",
     "previousLocID": "none",
     "awaitingConfirmation": false
