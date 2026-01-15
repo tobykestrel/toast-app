@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {Location, initializeLocData, getLocArray} from "../../components/LocalData";
+import { Location, initializeLocData, getLocArray } from "../../components/LocalData";
 
 export default function TabsLayout() {
 
@@ -48,6 +48,7 @@ export default function TabsLayout() {
       }} />
       {locations.map((loc) => (
         <Tabs.Screen
+          key={loc.id}
           name={loc.id}
           options={{
             title: loc.locationName,

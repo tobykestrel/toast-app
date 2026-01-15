@@ -19,6 +19,15 @@ const LOC_KEY = 'LCL_LOC';
 const STU_KEY = 'LCL_STU';
 const TEA_KEY = 'LCL_TEA';
 const STN_KEY = 'LCL_SET';
+
+// Clear all local data (for development/testing)
+export async function clearAllData() {
+  await AsyncStorage.multiRemove([LOC_KEY, STU_KEY, TEA_KEY, STN_KEY]);
+}
+export async function reinitializeAllData() {
+  await AsyncStorage.multiRemove([LOC_KEY, STU_KEY, TEA_KEY, STN_KEY]);
+}
+
 export async function initializeLocData() {
   const existLoc = await AsyncStorage.getItem(LOC_KEY);
   if (!existLoc) { await AsyncStorage.setItem(LOC_KEY, JSON.stringify(LclLocations)); }
@@ -80,37 +89,96 @@ export async function updateStnData(updater: (settings: Settings) => Settings) {
   await AsyncStorage.setItem(STN_KEY, JSON.stringify(updatedJSON));
 }
 
-// Update a person's current location.
+// Student data updaters.
 export async function updateStuLocation(stuID: string, newLocID: string) {
   await updateStuData(students => {
     const student = students.find(s => s.id === stuID);
     if (!student) { throw new Error(`Student ${stuID} not found`); }
     student.currentLocID = newLocID;
+    student.awaitingConfirmation = true;
     return students;
   });
 }
-export async function updateTeaLocation(teaID: string, newLocation: string) {
+export async function updateStuConfirmArrival(stuID: string) {
+  await updateStuData(students => {
+    const student = students.find(s => s.id === stuID);
+    if (!student) { throw new Error(`Student ${stuID} not found`); }
+    student.awaitingConfirmation = false;
+    return students;
+  });
+}
+export async function updateStuRejectArrival(stuID: string) {
+  await updateStuData(students => {
+    const student = students.find(s => s.id === stuID);
+    if (!student) { throw new Error(`Student ${stuID} not found`); }
+    student.currentLocID = student.previousLocID;
+    student.awaitingConfirmation = false;
+    return students;
+  });
+}
+
+// Teacher data updaters.
+export async function updateTeaLocation(teaID: string, newLocID: string) {
   await updateTeaData(teachers => {
     const teacher = teachers.find(t => t.id === teaID);
     if (!teacher) { throw new Error(`Teacher ${teaID} not found`); }
-    teacher.currentLocation = newLocation;
+    teacher.currentLocID = newLocID;
     return teachers;
   });
 }
 
-// Get arrays.
+// Location array getters.
 export async function getLocArray(): Promise<Location[]> {
   const locData = await readLocData();
   const locList: Location[] = locData.slice(0);
   return locList;
 }
+
+// Student array getters.
 export async function getStuArray(): Promise<Student[]> {
   const stuData = await readStuData();
   const stuList: Student[] = stuData.slice(0);
   return stuList;
 }
+export async function getStuArrayByLocID(locID: string): Promise<Student[]> {
+  const stuData = await readStuData();
+  const stuList: Student[] = stuData.filter(stu => stu.currentLocID === locID && !stu.awaitingConfirmation);
+  return stuList;
+}
+export async function getStuArrayByLocIDAwaiting(locID: string): Promise<Student[]> {
+  const stuData = await readStuData();
+  const stuList: Student[] = stuData.filter(stu => stu.currentLocID === locID && stu.awaitingConfirmation);
+  return stuList;
+}
+export async function getStuArrayPresent(): Promise<Student[]> {
+  const stuData = await readStuData();
+  const stuList: Student[] = stuData.filter(stu => stu.currentLocID !== "none");
+  return stuList;
+}
+export async function getStuArrayNotPresent(): Promise<Student[]> {
+  const stuData = await readStuData();
+  const stuList: Student[] = stuData.filter(stu => stu.currentLocID === "none");
+  return stuList;
+}
+
+// Teacher array getters.
 export async function getTeaArray(): Promise<Teacher[]> {
   const teaData = await readTeaData();
   const teaList: Teacher[] = teaData.slice(0);
+  return teaList;
+}
+export async function getTeaArrayByLocID(locID: string): Promise<Teacher[]> {
+  const teaData = await readTeaData();
+  const teaList: Teacher[] = teaData.filter(tea => tea.currentLocID === locID);
+  return teaList;
+}
+export async function getTeaArrayPresent(): Promise<Teacher[]> {
+  const teaData = await readTeaData();
+  const teaList: Teacher[] = teaData.filter(tea => tea.currentLocID !== "none");
+  return teaList;
+}
+export async function getTeaArrayNotPresent(): Promise<Teacher[]> {
+  const teaData = await readTeaData();
+  const teaList: Teacher[] = teaData.filter(tea => tea.currentLocID === "none");
   return teaList;
 }

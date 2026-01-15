@@ -5,7 +5,9 @@
     "lastName": "Aurora",
     "dob": "2019-12-23",
     "days": ["Tue", "Wed", "Thur"],
-    "currentLocID": "none"
+    "currentLocID": "loc002",
+    "previousLocID": "none",
+    "awaitingConfirmation": false
   },
   {
     "id": "stu002",
@@ -13,7 +15,9 @@
     "lastName": "Boeman",
     "dob": "2020-09-01",
     "days": ["Mon", "Tue", "Thur","Fri"],
-    "currentLocID": "loc001"
+    "currentLocID": "none",
+    "previousLocID": "none",
+    "awaitingConfirmation": false
   },
   {
     "id": "stu003",
@@ -21,7 +25,9 @@
     "lastName": "Charm",
     "dob": "2021-03-15",
     "days": ["Mon", "Wed", "Fri"],
-    "currentLocID": "loc002"
+    "currentLocID": "loc002",
+    "previousLocID": "none",
+    "awaitingConfirmation": false
   },
   {
     "id": "stu004",
@@ -29,7 +35,9 @@
     "lastName": "Davies",
     "dob": "2020-07-22",
     "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
-    "currentLocID": "loc001"
+    "currentLocID": "loc001",
+    "previousLocID": "none",
+    "awaitingConfirmation": false
   },
   {
     "id": "stu005",
@@ -37,6 +45,8 @@
     "lastName": "Earls",
     "dob": "2018-02-02",
     "days": ["Tue", "Wed", "Thu", "Fri"],
-    "currentLocID": "loc003"
+    "currentLocID": "loc003",
+    "previousLocID": "none",
+    "awaitingConfirmation": false
   }
 ]
