@@ -58,5 +58,65 @@
     "currentLocID": "loc003",
     "previousLocID": "none",
     "awaitingConfirmation": false
+  },
+  {
+    "id": "stu006",
+    "firstName": "Fiona",
+    "lastName": "Forest",
+    "dob": "2019-05-18",
+    "days": ["Mon", "Tue", "Wed", "Fri"],
+    "grade": 2,
+    "hasMeds": true,
+    "currentLocID": "loc001",
+    "previousLocID": "none",
+    "awaitingConfirmation": false
+  },
+  {
+    "id": "stu007",
+    "firstName": "Grace",
+    "lastName": "Graves",
+    "dob": "2020-11-09",
+    "days": ["Mon", "Wed", "Thu"],
+    "grade": 3,
+    "hasMeds": false,
+    "currentLocID": "loc002",
+    "previousLocID": "none",
+    "awaitingConfirmation": false
+  },
+  {
+    "id": "stu008",
+    "firstName": "Henry",
+    "lastName": "Harbor",
+    "dob": "2021-01-30",
+    "days": ["Tue", "Thu", "Fri"],
+    "grade": 2,
+    "hasMeds": false,
+    "currentLocID": "loc003",
+    "previousLocID": "none",
+    "awaitingConfirmation": false
+  },
+  {
+    "id": "stu009",
+    "firstName": "Iris",
+    "lastName": "Irwin",
+    "dob": "2019-08-12",
+    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    "grade": 4,
+    "hasMeds": true,
+    "currentLocID": "loc001",
+    "previousLocID": "none",
+    "awaitingConfirmation": false
+  },
+  {
+    "id": "stu010",
+    "firstName": "Jack",
+    "lastName": "Jordan",
+    "dob": "2020-04-25",
+    "days": ["Wed", "Thu", "Fri"],
+    "grade": 3,
+    "hasMeds": false,
+    "currentLocID": "loc002",
+    "previousLocID": "none",
+    "awaitingConfirmation": false
   }
 ]

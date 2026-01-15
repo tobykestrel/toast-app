@@ -11,6 +11,16 @@ type LocationScreenProps = {
   locID: string;
 };
 
+// Get color for grade border
+const getGradeColor = (grade: number): string => {
+  switch (grade) {
+    case 2: return '#3b7df6'; // blue
+    case 3: return '#1aa783'; // green
+    case 4: return '#c45353'; // red
+    default: return '#6b7280'; // gray
+  }
+};
+
 type StudentItemProps = {
   student: Student;
   isSelecting: boolean;
@@ -23,6 +33,7 @@ const StudentItem = ({ student, isSelecting, isSelected, onPress, onMove }: Stud
   <TouchableOpacity
     style={[
       styles.itemContainer,
+      { borderLeftColor: getGradeColor(student.grade), borderLeftWidth: 4 },
       isSelected && styles.itemContainerSelected
     ]}
     onPress={isSelecting ? onPress : undefined}
@@ -269,6 +280,22 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
 
   if (loading) { return <Text>Loading students in {locID}...</Text>; }
 
+  // Sort students and teachers alphabetically by first name, then last name
+  const sortedStudents = [...students].sort((a, b) => {
+    const firstNameCompare = a.firstName.localeCompare(b.firstName);
+    return firstNameCompare !== 0 ? firstNameCompare : a.lastName.localeCompare(b.lastName);
+  });
+
+  const sortedTeachers = [...teachers].sort((a, b) => {
+    const firstNameCompare = a.firstName.localeCompare(b.firstName);
+    return firstNameCompare !== 0 ? firstNameCompare : a.lastName.localeCompare(b.lastName);
+  });
+
+  const sortedAwaitingStudents = [...awaitingStudents].sort((a, b) => {
+    const firstNameCompare = a.firstName.localeCompare(b.firstName);
+    return firstNameCompare !== 0 ? firstNameCompare : a.lastName.localeCompare(b.lastName);
+  });
+
   const selectedStudentObjects = students.filter(s => selectedStudents.has(s.id));
   const selectedTeacherObjects = teachers.filter(t => selectedTeachers.has(t.id));
   const studentsWithMeds = students.filter(s => s.hasMeds).length;
@@ -294,7 +321,7 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
           />
         )}
         <FlatList
-          data={showStudents ? students : teachers}
+          data={showStudents ? sortedStudents : sortedTeachers}
           renderItem={({ item }) => showStudents ? (
             <StudentItem
               student={item as Student}
@@ -313,7 +340,7 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
             />
           )}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={showStudents ? <AwaitingStudentsList students={awaitingStudents} onUpdate={loadStudents} /> : undefined}
+          ListHeaderComponent={showStudents ? <AwaitingStudentsList students={sortedAwaitingStudents} onUpdate={loadStudents} /> : undefined}
         />
         <MoveStudentModal
           visible={modalVisible}
@@ -416,7 +443,7 @@ const styles = StyleSheet.create({
   },
   itemContainerSelected: {
     backgroundColor: 'rgba(72, 187, 120, 0.2)',
-    borderWidth: 2,
+    borderWidth: .5,
     borderColor: '#48bb78',
   },
   itemText: {
