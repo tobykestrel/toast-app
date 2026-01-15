@@ -1,11 +1,11 @@
 // Add confirmation from other devices in gym.
 
 // Imports.
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import LclLocations from "../assets/localData/locations.json";
 import LclSettings from "../assets/localData/settings.json";
 import LclStudents from "../assets/localData/students.json";
 import LclTeachers from "../assets/localData/teachers.json";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Load local data.
 type Locations = typeof LclLocations;
@@ -94,6 +94,7 @@ export async function updateStuLocation(stuID: string, newLocID: string) {
   await updateStuData(students => {
     const student = students.find(s => s.id === stuID);
     if (!student) { throw new Error(`Student ${stuID} not found`); }
+    student.previousLocID = student.currentLocID;
     student.currentLocID = newLocID;
     student.awaitingConfirmation = true;
     return students;
