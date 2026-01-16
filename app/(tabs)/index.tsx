@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, Modal, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import CustomCheckbox from "../../components/CustomCheckbox";
-import { Student, Teacher, getStuArray, getTeaArray, initializeStuData, updateStuLocation } from "../../components/LocalData";
+import { Student, Teacher, getLocArray, getStuArray, getTeaArray, initializeStuData, markStuAbsent, markStuPresent, markTeaAbsent, markTeaPresent } from "../../components/LocalData";
 
 const getGradeColor = (grade: number): string => {
   switch (grade) {
@@ -125,40 +125,45 @@ const OptionsModal = ({
   person,
   isStudent,
   onClose,
-  onNotPresent,
+  onTogglePresence,
   onViewProfile,
 }: {
   visible: boolean;
   person: PersonItem | null;
   isStudent: boolean;
   onClose: () => void;
-  onNotPresent: () => void;
+  onTogglePresence: () => void;
   onViewProfile: () => void;
-}) => (
-  <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-    <View style={styles.modalOverlay}>
-      <View style={styles.optionsModalContent}>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeButtonText}>✕</Text>
-        </TouchableOpacity>
+}) => {
+  const isPresent = person?.present ?? true;
+  const buttonText = isPresent ? 'Mark Absent' : 'Mark Present';
 
-        <Text style={styles.modalTitle}>{person ? `${person.firstName} ${person.lastName}` : ''}</Text>
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.optionsModalContent}>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeButtonText}>✕</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.optionButton} onPress={onNotPresent}>
-          <Text style={styles.optionText}>Not-Present</Text>
-        </TouchableOpacity>
+          <Text style={styles.modalTitle}>{person ? `${person.firstName} ${person.lastName}` : ''}</Text>
 
-        <TouchableOpacity style={styles.optionButton} onPress={onViewProfile}>
-          <Text style={styles.optionText}>View Profile</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.optionButton} onPress={onTogglePresence}>
+            <Text style={styles.optionText}>{buttonText}</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.optionButton, styles.cancelButton]} onPress={onClose}>
-          <Text style={styles.cancelText}>Cancel</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.optionButton} onPress={onViewProfile}>
+            <Text style={styles.optionText}>View Profile</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.optionButton, styles.cancelButton]} onPress={onClose}>
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 const ProfileModal = ({
   visible,
@@ -294,14 +299,36 @@ export default function Index() {
     setOptionsModalVisible(true);
   };
 
-  const handleNotPresent = async () => {
-    if (selectedPerson && 'grade' in selectedPerson) {
-      await updateStuLocation(selectedPerson.id, 'none');
-      const updatedStudents = allStudents.map(s =>
-        s.id === selectedPerson.id ? { ...s, present: false } : s
-      );
-      setAllStudents(updatedStudents);
+  const handleTogglePresence = async () => {
+    if (!selectedPerson) return;
+
+    try {
+      const isStudent = 'grade' in selectedPerson;
+      const isCurrentlyPresent = selectedPerson.present;
+
+      if (isCurrentlyPresent) {
+        // Mark as absent
+        if (isStudent) {
+          await markStuAbsent(selectedPerson.id);
+        } else {
+          await markTeaAbsent(selectedPerson.id);
+        }
+      } else {
+        // Mark as present - need to get the default location
+        const locations = await getLocArray();
+        const defaultLoc = locations.find(l => l.isDefault);
+        const defaultLocID = defaultLoc?.id || 'loc001';
+
+        if (isStudent) {
+          await markStuPresent(selectedPerson.id, defaultLocID);
+        } else {
+          await markTeaPresent(selectedPerson.id, defaultLocID);
+        }
+      }
+
       await loadData();
+    } catch (err) {
+      console.error('Failed to toggle presence:', err);
     }
     setOptionsModalVisible(false);
   };
@@ -362,7 +389,7 @@ export default function Index() {
           person={selectedPerson}
           isStudent={selectedPerson ? 'grade' in selectedPerson : false}
           onClose={() => setOptionsModalVisible(false)}
-          onNotPresent={handleNotPresent}
+          onTogglePresence={handleTogglePresence}
           onViewProfile={handleViewProfile}
         />
         <ProfileModal

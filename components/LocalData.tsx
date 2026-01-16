@@ -131,6 +131,52 @@ export async function updateTeaLocation(teaID: string, newLocID: string) {
   });
 }
 
+// Mark student as absent
+export async function markStuAbsent(stuID: string) {
+  await updateStuData(students => {
+    const student = students.find(s => s.id === stuID);
+    if (!student) { throw new Error(`Student ${stuID} not found`); }
+    student.currentLocID = 'none';
+    student.previousLocID = 'none';
+    student.awaitingConfirmation = false;
+    student.present = false;
+    return students;
+  });
+}
+
+// Mark student as present
+export async function markStuPresent(stuID: string, defaultLocID: string) {
+  await updateStuData(students => {
+    const student = students.find(s => s.id === stuID);
+    if (!student) { throw new Error(`Student ${stuID} not found`); }
+    student.currentLocID = defaultLocID;
+    student.present = true;
+    return students;
+  });
+}
+
+// Mark teacher as absent
+export async function markTeaAbsent(teaID: string) {
+  await updateTeaData(teachers => {
+    const teacher = teachers.find(t => t.id === teaID);
+    if (!teacher) { throw new Error(`Teacher ${teaID} not found`); }
+    teacher.currentLocID = 'none';
+    teacher.present = false;
+    return teachers;
+  });
+}
+
+// Mark teacher as present
+export async function markTeaPresent(teaID: string, defaultLocID: string) {
+  await updateTeaData(teachers => {
+    const teacher = teachers.find(t => t.id === teaID);
+    if (!teacher) { throw new Error(`Teacher ${teaID} not found`); }
+    teacher.currentLocID = defaultLocID;
+    teacher.present = true;
+    return teachers;
+  });
+}
+
 // Location array getters.
 export async function getLocArray(): Promise<Location[]> {
   const locData = await readLocData();

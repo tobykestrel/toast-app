@@ -138,7 +138,7 @@ const getGradeLabel = (grade: number): string => {
 const getRatioColor = (ratio: number): string => {
   if (ratio > RATIO_MAX_THRESHOLD) return '#ef4444'; // red
   if (ratio > RATIO_WARN_THRESHOLD) return '#eab308'; // yellow
-  return '#fff';
+  return '#48bb78';
 };
 
 const StatsHeader = ({ studentCount, teacherCount, showStudents, onToggleView, selectedGrades, onToggleGrade }: StatsHeaderProps) => {
