@@ -232,3 +232,23 @@ export async function getTeaArrayNotPresent(): Promise<Teacher[]> {
   const teaList: Teacher[] = teaData.filter(tea => tea.currentLocID === "none");
   return teaList;
 }
+
+// Edit student profile
+export async function updateStuProfile(stuID: string, updates: Partial<Student>) {
+  await updateStuData(students => {
+    const student = students.find(s => s.id === stuID);
+    if (!student) { throw new Error(`Student ${stuID} not found`); }
+    Object.assign(student, updates);
+    return students;
+  });
+}
+
+// Edit teacher profile
+export async function updateTeaProfile(teaID: string, updates: Partial<Teacher>) {
+  await updateTeaData(teachers => {
+    const teacher = teachers.find(t => t.id === teaID);
+    if (!teacher) { throw new Error(`Teacher ${teaID} not found`); }
+    Object.assign(teacher, updates);
+    return teachers;
+  });
+}

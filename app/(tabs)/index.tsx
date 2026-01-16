@@ -5,6 +5,7 @@ import { FlatList, Modal, ScrollView, StyleSheet, Switch, Text, TextInput, Touch
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import CustomCheckbox from "../../components/CustomCheckbox";
 import { Student, Teacher, getLocArray, getStuArray, getTeaArray, initializeStuData, markStuAbsent, markStuPresent, markTeaAbsent, markTeaPresent } from "../../components/LocalData";
+import { useTheme } from "../../constants/ThemeContext";
 
 const getGradeColor = (grade: number): string => {
   switch (grade) {
@@ -39,6 +40,7 @@ const HomeStatsBar = ({
   onTogglePresent,
   selectedGrades,
   onToggleGrade,
+  colors,
 }: {
   totalStudents: number;
   totalTeachers: number;
@@ -48,77 +50,176 @@ const HomeStatsBar = ({
   onTogglePresent: (value: boolean) => void;
   selectedGrades: Set<number>;
   onToggleGrade: (grade: number) => void;
-}) => (
-  <View style={styles.statsBox}>
-    <View style={styles.statsContent}>
-      {showTeachers ? (
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Teachers</Text>
-          <Text style={styles.statValue}>{totalTeachers}</Text>
+  colors: any;
+}) => {
+  const themedStyles = StyleSheet.create({
+    statsBox: {
+      backgroundColor: colors.container,
+      paddingVertical: 12,
+      paddingHorizontal: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    statsContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginBottom: 12,
+    },
+    statItem: {
+      alignItems: 'center',
+    },
+    statLabel: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginBottom: 4,
+    },
+    statValue: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.accent,
+    },
+    gradesContainer: {
+      marginBottom: 12,
+      paddingHorizontal: 5,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 12,
+    },
+    gradeCheckboxHorizontal: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    gradeLabel: {
+      color: colors.textMuted,
+      fontSize: 12,
+      marginLeft: 8,
+    },
+    switchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      justifyContent: 'center',
+    },
+    switchItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    switchLabel: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginRight: 8,
+    },
+  });
+
+  return (
+    <View style={themedStyles.statsBox}>
+      <View style={themedStyles.statsContent}>
+        {showTeachers ? (
+          <View style={themedStyles.statItem}>
+            <Text style={themedStyles.statLabel}>Teachers</Text>
+            <Text style={themedStyles.statValue}>{totalTeachers}</Text>
+          </View>
+        ) : (
+          <View style={themedStyles.statItem}>
+            <Text style={themedStyles.statLabel}>Students</Text>
+            <Text style={themedStyles.statValue}>{totalStudents}</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={themedStyles.switchContainer}>
+        <View style={themedStyles.switchItem}>
+          <Text style={themedStyles.switchLabel}>{showPresent ? 'Present' : 'Absent'}</Text>
+          <Switch
+            value={showPresent}
+            onValueChange={onTogglePresent}
+            trackColor={{ false: colors.border, true: colors.accent }}
+            thumbColor={showPresent ? colors.text : colors.textMuted}
+          />
         </View>
-      ) : (
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Students</Text>
-          <Text style={styles.statValue}>{totalStudents}</Text>
+        <View style={themedStyles.switchItem}>
+          <Text style={themedStyles.switchLabel}>{showTeachers ? 'Teachers' : 'Students'}</Text>
+          <Switch
+            value={!showTeachers}
+            onValueChange={(val) => onToggleTeachers(!val)}
+            trackColor={{ false: colors.border, true: colors.accent }}
+            thumbColor={!showTeachers ? colors.text : colors.textMuted}
+          />
+        </View>
+      </View>
+
+      {!showTeachers && (
+        <View style={themedStyles.gradesContainer}>
+          {[2, 3, 4].map((grade) => (
+            <View key={grade} style={themedStyles.gradeCheckboxHorizontal}>
+              <CustomCheckbox
+                value={selectedGrades.has(grade)}
+                onValueChange={() => onToggleGrade(grade)}
+                color={getGradeColor(grade)}
+              />
+              <Text style={themedStyles.gradeLabel}>{getGradeLabel(grade)}</Text>
+            </View>
+          ))}
         </View>
       )}
     </View>
-
-    <View style={styles.switchContainer}>
-      <View style={styles.switchItem}>
-        <Text style={styles.switchLabel}>{showPresent ? 'Present' : 'Absent'}</Text>
-        <Switch
-          value={showPresent}
-          onValueChange={onTogglePresent}
-          trackColor={{ false: '#555', true: '#48bb78' }}
-          thumbColor={showPresent ? '#fff' : '#ccc'}
-        />
-      </View>
-      <View style={styles.switchItem}>
-        <Text style={styles.switchLabel}>{showTeachers ? 'Teachers' : 'Students'}</Text>
-        <Switch
-          value={!showTeachers}
-          onValueChange={(val) => onToggleTeachers(!val)}
-          trackColor={{ false: '#555', true: '#48bb78' }}
-          thumbColor={!showTeachers ? '#fff' : '#ccc'}
-        />
-      </View>
-    </View>
-
-    {!showTeachers && (
-      <View style={styles.gradesContainer}>
-        {[2, 3, 4].map((grade) => (
-          <View key={grade} style={styles.gradeCheckboxHorizontal}>
-            <CustomCheckbox
-              value={selectedGrades.has(grade)}
-              onValueChange={() => onToggleGrade(grade)}
-              color={getGradeColor(grade)}
-            />
-            <Text style={styles.gradeLabel}>{getGradeLabel(grade)}</Text>
-          </View>
-        ))}
-      </View>
-    )}
-  </View>
-);
+  );
+};
 
 type PersonItemProps = {
   person: PersonItem;
   isStudent: boolean;
   onOptions: () => void;
+  colors: any;
 };
 
-const PersonListItem = ({ person, isStudent, onOptions }: PersonItemProps) => (
-  <TouchableOpacity style={[styles.itemContainer, { borderLeftColor: isStudent ? getGradeColor((person as Student).grade) : '#6b7280', borderLeftWidth: 4 }]}>
-    <View style={{ flex: 1 }}>
-      <Text style={styles.itemText}>{person.firstName} {person.lastName}</Text>
-      <Text style={styles.itemLocation}>{person.currentLocID === 'none' ? 'Not present' : getLocationName(person.currentLocID)}</Text>
-    </View>
-    <TouchableOpacity style={styles.optionsButton} onPress={onOptions}>
-      <Text style={styles.optionsButtonText}>Options</Text>
+const PersonListItem = ({ person, isStudent, onOptions, colors }: PersonItemProps) => {
+  const themedStyles = StyleSheet.create({
+    itemContainer: {
+      backgroundColor: colors.container,
+      padding: 12,
+      marginVertical: 1,
+      marginHorizontal: 5,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderLeftColor: isStudent ? getGradeColor((person as Student).grade) : colors.textMuted,
+      borderLeftWidth: 4,
+    },
+    itemText: {
+      fontSize: 16,
+      color: colors.text,
+      fontWeight: '500',
+    },
+    itemLocation: {
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    optionsButton: {
+      backgroundColor: colors.blue,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 4,
+    },
+    optionsButtonText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#ffffff',
+    },
+  });
+
+  return (
+    <TouchableOpacity style={themedStyles.itemContainer}>
+      <View style={{ flex: 1 }}>
+        <Text style={themedStyles.itemText}>{person.firstName} {person.lastName}</Text>
+        <Text style={themedStyles.itemLocation}>{person.currentLocID === 'none' ? 'Not present' : getLocationName(person.currentLocID)}</Text>
+      </View>
+      <TouchableOpacity style={themedStyles.optionsButton} onPress={onOptions}>
+        <Text style={themedStyles.optionsButtonText}>Options</Text>
+      </TouchableOpacity>
     </TouchableOpacity>
-  </TouchableOpacity>
-);
+  );
+};
 
 const OptionsModal = ({
   visible,
@@ -127,6 +228,7 @@ const OptionsModal = ({
   onClose,
   onTogglePresence,
   onViewProfile,
+  colors,
 }: {
   visible: boolean;
   person: PersonItem | null;
@@ -134,30 +236,84 @@ const OptionsModal = ({
   onClose: () => void;
   onTogglePresence: () => void;
   onViewProfile: () => void;
+  colors: any;
 }) => {
+  const themedStyles = StyleSheet.create({
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    optionsModalContent: {
+      backgroundColor: colors.container,
+      borderRadius: 12,
+      padding: 20,
+      width: '80%',
+      maxWidth: 400,
+    },
+    closeButton: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      padding: 10,
+    },
+    closeButtonText: {
+      fontSize: 20,
+      color: colors.text,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 16,
+      marginTop: 8,
+    },
+    optionButton: {
+      backgroundColor: colors.blue,
+      paddingVertical: 12,
+      marginVertical: 8,
+      borderRadius: 6,
+      alignItems: 'center',
+    },
+    optionText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#ffffff',
+    },
+    cancelButton: {
+      backgroundColor: colors.red,
+    },
+    cancelText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#ffffff',
+    },
+  });
+
   const isPresent = person?.present ?? true;
   const buttonText = isPresent ? 'Mark Absent' : 'Mark Present';
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.optionsModalContent}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>✕</Text>
+      <View style={themedStyles.modalOverlay}>
+        <View style={themedStyles.optionsModalContent}>
+          <TouchableOpacity style={themedStyles.closeButton} onPress={onClose}>
+            <Text style={themedStyles.closeButtonText}>✕</Text>
           </TouchableOpacity>
 
-          <Text style={styles.modalTitle}>{person ? `${person.firstName} ${person.lastName}` : ''}</Text>
+          <Text style={themedStyles.modalTitle}>{person ? `${person.firstName} ${person.lastName}` : ''}</Text>
 
-          <TouchableOpacity style={styles.optionButton} onPress={onTogglePresence}>
-            <Text style={styles.optionText}>{buttonText}</Text>
+          <TouchableOpacity style={themedStyles.optionButton} onPress={onTogglePresence}>
+            <Text style={themedStyles.optionText}>{buttonText}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.optionButton} onPress={onViewProfile}>
-            <Text style={styles.optionText}>View Profile</Text>
+          <TouchableOpacity style={themedStyles.optionButton} onPress={onViewProfile}>
+            <Text style={themedStyles.optionText}>View Profile</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.optionButton, styles.cancelButton]} onPress={onClose}>
-            <Text style={styles.cancelText}>Cancel</Text>
+          <TouchableOpacity style={[themedStyles.optionButton, themedStyles.cancelButton]} onPress={onClose}>
+            <Text style={themedStyles.cancelText}>Cancel</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -170,55 +326,117 @@ const ProfileModal = ({
   person,
   isStudent,
   onClose,
+  colors,
 }: {
   visible: boolean;
   person: PersonItem | null;
   isStudent: boolean;
   onClose: () => void;
+  colors: any;
 }) => {
   if (!person) return null;
   const student = person as Student;
   const daysText = student.days?.join(', ') || 'N/A';
-  const borderColor = isStudent ? getGradeColor(student.grade) : '#6b7280';
+  const borderColor = isStudent ? getGradeColor(student.grade) : colors.textMuted;
+
+  const themedStyles = StyleSheet.create({
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    profileModalContent: {
+      backgroundColor: colors.container,
+      borderRadius: 12,
+      padding: 20,
+      width: '85%',
+      maxHeight: '80%',
+    },
+    closeButton: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      width: 36,
+      height: 36,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 18,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    closeButtonText: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    profileTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginBottom: 20,
+      marginTop: 10,
+      textAlign: 'center',
+    },
+    profileInfo: {
+      maxHeight: 400,
+    },
+    profileRow: {
+      flexDirection: 'row',
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    profileLabel: {
+      fontSize: 14,
+      color: colors.textMuted,
+      fontWeight: '600',
+      width: 100,
+    },
+    profileValue: {
+      fontSize: 14,
+      color: colors.text,
+      flex: 1,
+    },
+  });
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={[styles.profileModalContent, { borderColor: `${borderColor}90`, borderWidth: 3 }]}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>✕</Text>
+      <View style={themedStyles.modalOverlay}>
+        <View style={[themedStyles.profileModalContent, { borderColor: `${borderColor}90`, borderWidth: 3 }]}>
+          <TouchableOpacity style={themedStyles.closeButton} onPress={onClose}>
+            <Text style={themedStyles.closeButtonText}>✕</Text>
           </TouchableOpacity>
 
-          <Text style={styles.profileTitle}>{person.firstName} {person.lastName}</Text>
+          <Text style={themedStyles.profileTitle}>{person.firstName} {person.lastName}</Text>
 
-          <ScrollView style={styles.profileInfo}>
+          <ScrollView style={themedStyles.profileInfo}>
             {isStudent && (
               <>
-                <View style={styles.profileRow}>
-                  <Text style={styles.profileLabel}>Days:</Text>
-                  <Text style={styles.profileValue}>{daysText}</Text>
+                <View style={themedStyles.profileRow}>
+                  <Text style={themedStyles.profileLabel}>Days:</Text>
+                  <Text style={themedStyles.profileValue}>{daysText}</Text>
                 </View>
-                <View style={styles.profileRow}>
-                  <Text style={styles.profileLabel}>Grade:</Text>
-                  <Text style={styles.profileValue}>{getGradeLabel(student.grade)}</Text>
+                <View style={themedStyles.profileRow}>
+                  <Text style={themedStyles.profileLabel}>Grade:</Text>
+                  <Text style={themedStyles.profileValue}>{getGradeLabel(student.grade)}</Text>
                 </View>
-                <View style={styles.profileRow}>
-                  <Text style={styles.profileLabel}>Medication:</Text>
-                  <Text style={styles.profileValue}>{student.hasMeds ? 'Yes' : 'No'}</Text>
+                <View style={themedStyles.profileRow}>
+                  <Text style={themedStyles.profileLabel}>Medication:</Text>
+                  <Text style={themedStyles.profileValue}>{student.hasMeds ? 'Yes' : 'No'}</Text>
                 </View>
               </>
             )}
-            <View style={styles.profileRow}>
-              <Text style={styles.profileLabel}>Location:</Text>
-              <Text style={styles.profileValue}>{person.currentLocID === 'none' ? 'N/A' : person.currentLocID}</Text>
+            <View style={themedStyles.profileRow}>
+              <Text style={themedStyles.profileLabel}>Location:</Text>
+              <Text style={themedStyles.profileValue}>{person.currentLocID === 'none' ? 'N/A' : person.currentLocID}</Text>
             </View>
-            <View style={styles.profileRow}>
-              <Text style={styles.profileLabel}>DOB:</Text>
-              <Text style={styles.profileValue}>{person.dob}</Text>
+            <View style={themedStyles.profileRow}>
+              <Text style={themedStyles.profileLabel}>DOB:</Text>
+              <Text style={themedStyles.profileValue}>{person.dob}</Text>
             </View>
-            <View style={styles.profileRow}>
-              <Text style={styles.profileLabel}>ID:</Text>
-              <Text style={styles.profileValue}>{person.id}</Text>
+            <View style={themedStyles.profileRow}>
+              <Text style={themedStyles.profileLabel}>ID:</Text>
+              <Text style={themedStyles.profileValue}>{person.id}</Text>
             </View>
           </ScrollView>
         </View>
@@ -228,6 +446,7 @@ const ProfileModal = ({
 };
 
 export default function Index() {
+  const { colors } = useTheme();
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [allTeachers, setAllTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
@@ -238,6 +457,25 @@ export default function Index() {
   const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<PersonItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const themedStyles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.background,
+      flex: 1,
+    },
+    searchBar: {
+      backgroundColor: colors.container,
+      color: colors.text,
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      marginHorizontal: 12,
+      marginVertical: 8,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+      fontSize: 14,
+    },
+  });
 
   const loadData = useCallback(async () => {
     try {
@@ -355,7 +593,7 @@ export default function Index() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={themedStyles.container}>
         <HomeStatsBar
           totalStudents={totalStudents}
           totalTeachers={totalTeachers}
@@ -365,11 +603,12 @@ export default function Index() {
           onTogglePresent={setShowPresent}
           selectedGrades={selectedGrades}
           onToggleGrade={handleToggleGrade}
+          colors={colors}
         />
         <TextInput
-          style={styles.searchBar}
+          style={themedStyles.searchBar}
           placeholder="Search by name..."
-          placeholderTextColor="#888"
+          placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -380,6 +619,7 @@ export default function Index() {
               person={item}
               isStudent={'grade' in item}
               onOptions={() => handleOptions(item)}
+              colors={colors}
             />
           )}
           keyExtractor={(item) => item.id}
@@ -391,217 +631,16 @@ export default function Index() {
           onClose={() => setOptionsModalVisible(false)}
           onTogglePresence={handleTogglePresence}
           onViewProfile={handleViewProfile}
+          colors={colors}
         />
         <ProfileModal
           visible={profileModalVisible}
           person={selectedPerson}
           isStudent={selectedPerson ? 'grade' in selectedPerson : false}
           onClose={() => setProfileModalVisible(false)}
+          colors={colors}
         />
       </SafeAreaView>
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#25292e',
-    flex: 1,
-  },
-  searchBar: {
-    backgroundColor: '#3c4755',
-    color: '#fff',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    marginHorizontal: 12,
-    marginVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#555',
-    fontSize: 14,
-  },
-  statsBox: {
-    backgroundColor: '#3c4755',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2a2f35',
-  },
-  statsContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#aaa',
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#48bb78',
-  },
-  gradesContainer: {
-    marginBottom: 12,
-    paddingHorizontal: 5,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  gradeCheckbox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-  },
-  gradeCheckboxHorizontal: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  gradeLabel: {
-    color: '#aaa',
-    fontSize: 12,
-    marginLeft: 8,
-  },
-  switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    justifyContent: 'center',
-  },
-  switchItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  switchLabel: {
-    fontSize: 12,
-    color: '#aaa',
-    marginRight: 8,
-  },
-  itemContainer: {
-    backgroundColor: '#3c4755',
-    padding: 12,
-    marginVertical: 1,
-    marginHorizontal: 5,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  itemText: {
-    fontSize: 16,
-    color: '#fff',
-    fontWeight: '500',
-  },
-  itemLocation: {
-    fontSize: 12,
-    color: '#aaa',
-    marginTop: 4,
-  },
-  optionsButton: {
-    backgroundColor: '#3b82f6',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-    marginLeft: 10,
-  },
-  optionsButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  optionsModalContent: {
-    backgroundColor: '#25292e',
-    borderRadius: 12,
-    padding: 20,
-    width: '80%',
-    maxWidth: 400,
-  },
-  profileModalContent: {
-    backgroundColor: '#25292e',
-    borderRadius: 12,
-    padding: 20,
-    width: '85%',
-    maxHeight: '80%',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  closeButtonText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 20,
-    marginTop: 10,
-  },
-  profileTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 20,
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  optionButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginVertical: 6,
-    backgroundColor: '#3c4755',
-    borderRadius: 6,
-  },
-  optionText: {
-    fontSize: 16,
-    color: '#fff',
-    textAlign: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#ef4444',
-  },
-  cancelText: {
-    fontSize: 16,
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  profileInfo: {
-    maxHeight: 400,
-  },
-  profileRow: {
-    flexDirection: 'row',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3c4755',
-  },
-  profileLabel: {
-    fontSize: 14,
-    color: '#aaa',
-    fontWeight: '600',
-    width: 100,
-  },
-  profileValue: {
-    fontSize: 14,
-    color: '#fff',
-    flex: 1,
-  },
-});

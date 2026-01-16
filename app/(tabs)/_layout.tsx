@@ -2,8 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Location, getLocArray, initializeLocData } from "../../components/LocalData";
+import { useTheme } from "../../constants/ThemeContext";
 
 export default function TabsLayout() {
+  const { colors } = useTheme();
 
   // Load active locations from AsyncStorage.
   const [locations, setLocations] = useState<Location[]>([]);
@@ -26,11 +28,11 @@ export default function TabsLayout() {
   return (
     <Tabs
         screenOptions={{
-            tabBarActiveTintColor: "#82baff",
-            headerStyle: { backgroundColor: "#25292e" },
+            tabBarActiveTintColor: colors.blue,
+            headerStyle: { backgroundColor: colors.container },
             headerShadowVisible: false,
-            headerTintColor: "#fff",
-            tabBarStyle: { backgroundColor: "#25292e" },
+            headerTintColor: colors.text,
+            tabBarStyle: { backgroundColor: colors.container },
         }}
     >
       <Tabs.Screen 

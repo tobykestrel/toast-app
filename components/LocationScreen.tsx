@@ -8,6 +8,7 @@ import ConfirmationModal from "./ConfirmationModal";
 import CustomCheckbox from "./CustomCheckbox";
 import { Student, Teacher, getStuArrayByLocID, getStuArrayByLocIDAwaiting, getTeaArrayByLocID, initializeStuData } from "./LocalData";
 import MoveStudentModal from "./MoveStudentModal";
+import { useTheme } from "../constants/ThemeContext";
 
 // Ratio thresholds
 const RATIO_WARN_THRESHOLD = 10;
@@ -42,39 +43,95 @@ type StudentItemProps = {
   isSelected: boolean;
   onPress: () => void;
   onMove: () => void;
+  colors: any;
 };
 
-const StudentItem = ({ student, isSelecting, isSelected, onPress, onMove }: StudentItemProps) => (
-  <TouchableOpacity
-    style={[
-      styles.itemContainer,
-      { borderLeftColor: getGradeColor(student.grade), borderLeftWidth: 4 },
-      isSelected && styles.itemContainerSelected
-    ]}
-    onPress={isSelecting ? onPress : undefined}
-    onLongPress={!isSelecting ? onPress : undefined}
-    delayLongPress={500}
-  >
-    <View style={{ flex: 1 }}>
-      <Text style={styles.itemText}>
-        {student.firstName} {student.lastName}
-        {student.hasMeds && <Text style={styles.medsCross}> ✚</Text>}
-      </Text>
-    </View>
-    {isSelecting ? (
-      <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-        {isSelected && <Text style={styles.checkmark}>✓</Text>}
+const StudentItem = ({ student, isSelecting, isSelected, onPress, onMove, colors }: StudentItemProps) => {
+  const themedStyles = StyleSheet.create({
+    itemContainer: {
+      backgroundColor: colors.container,
+      padding: 12,
+      marginVertical: 1,
+      marginHorizontal: 5,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    itemContainerSelected: {
+      backgroundColor: colors.blue + '20',
+    },
+    itemText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    medsCross: {
+      color: colors.accent,
+    },
+    moveButton: {
+      backgroundColor: colors.accent,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 4,
+      marginLeft: 10,
+    },
+    moveButtonText: {
+      color: '#fff',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    checkbox: {
+      width: 24,
+      height: 24,
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderRadius: 4,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    checkboxSelected: {
+      backgroundColor: colors.blue,
+      borderColor: colors.blue,
+    },
+    checkmark: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+  });
+
+  return (
+    <TouchableOpacity
+      style={[
+        themedStyles.itemContainer,
+        { borderLeftColor: getGradeColor(student.grade), borderLeftWidth: 4 },
+        isSelected && themedStyles.itemContainerSelected
+      ]}
+      onPress={isSelecting ? onPress : undefined}
+      onLongPress={!isSelecting ? onPress : undefined}
+      delayLongPress={500}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={themedStyles.itemText}>
+          {student.firstName} {student.lastName}
+          {student.hasMeds && <Text style={themedStyles.medsCross}> ✚</Text>}
+        </Text>
       </View>
-    ) : (
-      <TouchableOpacity
-        style={styles.moveButton}
-        onPress={onMove}
-      >
-        <Text style={styles.moveButtonText}>Move</Text>
-      </TouchableOpacity>
-    )}
-  </TouchableOpacity>
-);
+      {isSelecting ? (
+        <View style={[themedStyles.checkbox, isSelected && themedStyles.checkboxSelected]}>
+          {isSelected && <Text style={themedStyles.checkmark}>✓</Text>}
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={themedStyles.moveButton}
+          onPress={onMove}
+        >
+          <Text style={themedStyles.moveButtonText}>Move</Text>
+        </TouchableOpacity>
+      )}
+    </TouchableOpacity>
+  );
+};
 
 type TeacherItemProps = {
   teacher: Teacher;
@@ -82,45 +139,138 @@ type TeacherItemProps = {
   isSelected: boolean;
   onPress: () => void;
   onMove: () => void;
+  colors: any;
 };
 
-const TeacherItem = ({ teacher, isSelecting, isSelected, onPress, onMove }: TeacherItemProps) => (
-  <TouchableOpacity
-    style={[
-      styles.itemContainer,
-      isSelected && styles.itemContainerSelected
-    ]}
-    onPress={isSelecting ? onPress : undefined}
-    onLongPress={!isSelecting ? onPress : undefined}
-    delayLongPress={500}
-  >
-    <Text style={styles.itemText}>{teacher.firstName} {teacher.lastName}</Text>
-    {isSelecting ? (
-      <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-        {isSelected && <Text style={styles.checkmark}>✓</Text>}
-      </View>
-    ) : (
-      <TouchableOpacity
-        style={styles.moveButton}
-        onPress={onMove}
-      >
-        <Text style={styles.moveButtonText}>Move</Text>
-      </TouchableOpacity>
-    )}
-  </TouchableOpacity>
-);
+const TeacherItem = ({ teacher, isSelecting, isSelected, onPress, onMove, colors }: TeacherItemProps) => {
+  const themedStyles = StyleSheet.create({
+    itemContainer: {
+      backgroundColor: colors.container,
+      padding: 12,
+      marginVertical: 1,
+      marginHorizontal: 5,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    itemContainerSelected: {
+      backgroundColor: colors.blue + '20',
+    },
+    itemText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    moveButton: {
+      backgroundColor: colors.accent,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 4,
+      marginLeft: 10,
+    },
+    moveButtonText: {
+      color: '#fff',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    checkbox: {
+      width: 24,
+      height: 24,
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderRadius: 4,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    checkboxSelected: {
+      backgroundColor: colors.blue,
+      borderColor: colors.blue,
+    },
+    checkmark: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+  });
 
-const SelectionHeader = ({ count, onClose, onMoveAll, itemType = 'Student' }: { count: number; onClose: () => void; onMoveAll: () => void; itemType?: string }) => (
-  <View style={styles.selectionHeader}>
-    <TouchableOpacity onPress={onClose} style={styles.headerButton}>
-      <Text style={styles.headerButtonText}>✕</Text>
+  return (
+    <TouchableOpacity
+      style={[
+        themedStyles.itemContainer,
+        isSelected && themedStyles.itemContainerSelected
+      ]}
+      onPress={isSelecting ? onPress : undefined}
+      onLongPress={!isSelecting ? onPress : undefined}
+      delayLongPress={500}
+    >
+      <Text style={themedStyles.itemText}>{teacher.firstName} {teacher.lastName}</Text>
+      {isSelecting ? (
+        <View style={[themedStyles.checkbox, isSelected && themedStyles.checkboxSelected]}>
+          {isSelected && <Text style={themedStyles.checkmark}>✓</Text>}
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={themedStyles.moveButton}
+          onPress={onMove}
+        >
+          <Text style={themedStyles.moveButtonText}>Move</Text>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
-    <Text style={styles.headerTitle}>{count} {itemType}{count !== 1 ? 's' : ''} Selected</Text>
-    <TouchableOpacity onPress={onMoveAll} style={styles.moveAllButton}>
-      <Text style={styles.moveAllText}>Move All</Text>
-    </TouchableOpacity>
-  </View>
-);
+  );
+};
+
+const SelectionHeader = ({ count, onClose, onMoveAll, itemType = 'Student', colors }: { count: number; onClose: () => void; onMoveAll: () => void; itemType?: string; colors: any }) => {
+  const themedStyles = StyleSheet.create({
+    selectionHeader: {
+      backgroundColor: colors.container,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerButton: {
+      padding: 8,
+    },
+    headerButtonText: {
+      fontSize: 20,
+      color: colors.text,
+    },
+    headerTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      flex: 1,
+      textAlign: 'center',
+    },
+    moveAllButton: {
+      backgroundColor: colors.accent,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 4,
+    },
+    moveAllText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#fff',
+    },
+  });
+
+  return (
+    <View style={themedStyles.selectionHeader}>
+      <TouchableOpacity onPress={onClose} style={themedStyles.headerButton}>
+        <Text style={themedStyles.headerButtonText}>✕</Text>
+      </TouchableOpacity>
+      <Text style={themedStyles.headerTitle}>{count} {itemType}{count !== 1 ? 's' : ''} Selected</Text>
+      <TouchableOpacity onPress={onMoveAll} style={themedStyles.moveAllButton}>
+        <Text style={themedStyles.moveAllText}>Move All</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 type StatsHeaderProps = {
   studentCount: number;
@@ -129,6 +279,7 @@ type StatsHeaderProps = {
   onToggleView: (value: boolean) => void;
   selectedGrades: Set<number>;
   onToggleGrade: (grade: number) => void;
+  colors: any;
 };
 
 const getGradeLabel = (grade: number): string => {
@@ -141,61 +292,118 @@ const getRatioColor = (ratio: number): string => {
   return '#48bb78';
 };
 
-const StatsHeader = ({ studentCount, teacherCount, showStudents, onToggleView, selectedGrades, onToggleGrade }: StatsHeaderProps) => {
+const StatsHeader = ({ studentCount, teacherCount, showStudents, onToggleView, selectedGrades, onToggleGrade, colors }: StatsHeaderProps) => {
   const ratio = teacherCount > 0 ? (studentCount / teacherCount) : 0;
   const ratioText = teacherCount > 0 ? ratio.toFixed(1) : 'N/A';
   
+  const themedStyles = StyleSheet.create({
+    statsBox: {
+      backgroundColor: colors.container,
+      paddingVertical: 12,
+      paddingHorizontal: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    statsTopRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    statsContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      flex: 1,
+    },
+    statItem: {
+      alignItems: 'center',
+    },
+    statLabel: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginBottom: 4,
+    },
+    statValue: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.accent,
+    },
+    toggleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    toggleLabel: {
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    gradesContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 12,
+    },
+    gradeCheckbox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    gradeLabel: {
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+  });
+
   return (
-    <View style={styles.statsBox}>
-      <View style={styles.statsTopRow}>
-        <View style={styles.statsContent}>
+    <View style={themedStyles.statsBox}>
+      <View style={themedStyles.statsTopRow}>
+        <View style={themedStyles.statsContent}>
           {showStudents ? (
             <>
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Students</Text>
-                <Text style={styles.statValue}>{studentCount}</Text>
+              <View style={themedStyles.statItem}>
+                <Text style={themedStyles.statLabel}>Students</Text>
+                <Text style={themedStyles.statValue}>{studentCount}</Text>
               </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Ratio</Text>
-                <Text style={[styles.statValue, { color: getRatioColor(ratio) }]}>{ratioText} : 1</Text>
+              <View style={themedStyles.statItem}>
+                <Text style={themedStyles.statLabel}>Ratio</Text>
+                <Text style={[themedStyles.statValue, { color: getRatioColor(ratio) }]}>{ratioText} : 1</Text>
               </View>
             </>
           ) : (
             <>
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Teachers</Text>
-                <Text style={styles.statValue}>{teacherCount}</Text>
+              <View style={themedStyles.statItem}>
+                <Text style={themedStyles.statLabel}>Teachers</Text>
+                <Text style={themedStyles.statValue}>{teacherCount}</Text>
               </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Student/Tea</Text>
-                <Text style={[styles.statValue, { color: getRatioColor(ratio) }]}>{ratioText}:1</Text>
+              <View style={themedStyles.statItem}>
+                <Text style={themedStyles.statLabel}>Ratio</Text>
+                <Text style={[themedStyles.statValue, { color: getRatioColor(ratio) }]}>{ratioText} : 1</Text>
               </View>
             </>
           )}
         </View>
 
-        <View style={styles.toggleContainer}>
-          <Text style={styles.toggleLabel}>{showStudents ? 'Students' : 'Teachers'}</Text>
+        <View style={themedStyles.toggleContainer}>
+          <Text style={themedStyles.toggleLabel}>{showStudents ? 'Students' : 'Teachers'}</Text>
           <Switch
             value={showStudents}
             onValueChange={onToggleView}
-            trackColor={{ false: '#555', true: '#48bb78' }}
-            thumbColor={showStudents ? '#fff' : '#ccc'}
+            trackColor={{ false: colors.border, true: colors.accent }}
+            thumbColor={showStudents ? colors.text : colors.textMuted}
           />
         </View>
       </View>
 
       {showStudents && (
-        <View style={styles.gradesContainer}>
+        <View style={themedStyles.gradesContainer}>
           {[2, 3, 4].map((grade) => (
-            <View key={grade} style={styles.gradeCheckbox}>
+            <View key={grade} style={themedStyles.gradeCheckbox}>
               <CustomCheckbox
                 value={selectedGrades.has(grade)}
                 onValueChange={() => onToggleGrade(grade)}
                 color={getGradeColor(grade)}
                 size="small"
               />
-              <Text style={styles.gradeLabel}>{getGradeLabel(grade)}</Text>
+              <Text style={themedStyles.gradeLabel}>{getGradeLabel(grade)}</Text>
             </View>
           ))}
         </View>
@@ -205,6 +413,8 @@ const StatsHeader = ({ studentCount, teacherCount, showStudents, onToggleView, s
 };
 
 export default function LocationScreen({ locID }: LocationScreenProps) {
+  const { colors } = useTheme();
+  
   // Load students at this location from AsyncStorage.
   const [students, setStudents] = useState<Student[]>([]);
   const [awaitingStudents, setAwaitingStudents] = useState<Student[]>([]);
@@ -382,15 +592,85 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
     setSelectedGrades(newGrades);
   };
 
+  const themedStyles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.background,
+      flex: 1,
+    },
+    searchBar: {
+      backgroundColor: colors.container,
+      color: colors.text,
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      marginHorizontal: 12,
+      marginVertical: 8,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+      fontSize: 14,
+    },
+    itemContainer: {
+      backgroundColor: colors.container,
+      padding: 12,
+      marginVertical: 1,
+      marginHorizontal: 5,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    itemContainerSelected: {
+      backgroundColor: colors.blue + '20',
+    },
+    itemText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    medsCross: {
+      color: colors.accent,
+    },
+    moveButton: {
+      backgroundColor: colors.blue,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 4,
+      marginLeft: 10,
+    },
+    moveButtonText: {
+      color: '#fff',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    checkbox: {
+      width: 24,
+      height: 24,
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderRadius: 4,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    checkboxSelected: {
+      backgroundColor: colors.blue,
+      borderColor: colors.blue,
+    },
+    checkmark: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+  });
+
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={themedStyles.container}>
         {isSelecting ? (
           <SelectionHeader
             count={currentSelection.size}
             onClose={handleExitSelection}
             onMoveAll={handleMoveAll}
             itemType={showStudents ? 'Student' : 'Teacher'}
+            colors={colors}
           />
         ) : (
           <StatsHeader
@@ -400,12 +680,13 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
             onToggleView={setShowStudents}
             selectedGrades={selectedGrades}
             onToggleGrade={handleToggleGrade}
+            colors={colors}
           />
         )}
         <TextInput
-          style={styles.searchBar}
+          style={themedStyles.searchBar}
           placeholder="Search by name..."
-          placeholderTextColor="#888"
+          placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -418,6 +699,7 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
               isSelected={selectedStudents.has(item.id)}
               onPress={() => handleItemPress(item.id)}
               onMove={() => handleMovePress(item.id)}
+              colors={colors}
             />
           ) : (
             <TeacherItem
@@ -426,6 +708,7 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
               isSelected={selectedTeachers.has(item.id)}
               onPress={() => handleItemPress(item.id)}
               onMove={() => handleMovePress(item.id)}
+              colors={colors}
             />
           )}
           keyExtractor={(item) => item.id}
