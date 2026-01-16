@@ -1,4 +1,7 @@
 {
   "theme": "dark",
-  "language": "en-US"
+  "siteName": "Afterschool Toast",
+  "warnThreshold": 10,
+  "maxThreshold": 13,
+  "notifyThresholdPassed": true
 }

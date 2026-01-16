@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from "expo-router";
 import React, { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Location, getLocArray, initializeLocData } from "../../components/LocalData";
 import { useTheme } from "../../constants/ThemeContext";
 
@@ -9,10 +10,18 @@ export default function TabsLayout() {
 
   // Load active locations from AsyncStorage.
   const [locations, setLocations] = useState<Location[]>([]);
+  const [siteName, setSiteName] = useState("Home");
   const [ready, setReady] = useState(false);
   useEffect(() => {
     async function loadLocations() {
       try {
+        // Load siteName from settings
+        const settingsJson = await AsyncStorage.getItem('settings');
+        if (settingsJson) {
+          const settings = JSON.parse(settingsJson);
+          setSiteName(settings.siteName || "Home");
+        }
+        
         await initializeLocData();
         const locArray = await getLocArray();
         setLocations(locArray.filter(loc => loc.isActive));
@@ -38,8 +47,8 @@ export default function TabsLayout() {
       <Tabs.Screen 
       name="index" 
       options={{
-        title: "Home",
-        headerTitle: "Home",
+        title: siteName || "Home",
+        headerTitle: siteName || "Home",
         tabBarIcon: ({focused, color}) => (
             <Ionicons 
                 name={focused ? "home-sharp" : "home-outline"}

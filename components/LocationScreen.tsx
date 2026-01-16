@@ -58,7 +58,7 @@ const StudentItem = ({ student, isSelecting, isSelected, onPress, onMove, colors
       alignItems: 'center',
     },
     itemContainerSelected: {
-      backgroundColor: colors.blue + '20',
+      backgroundColor: colors.accent + '20',
     },
     itemText: {
       color: colors.text,
@@ -90,8 +90,8 @@ const StudentItem = ({ student, isSelecting, isSelected, onPress, onMove, colors
       alignItems: 'center',
     },
     checkboxSelected: {
-      backgroundColor: colors.blue,
-      borderColor: colors.blue,
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
     },
     checkmark: {
       color: '#fff',
@@ -154,7 +154,7 @@ const TeacherItem = ({ teacher, isSelecting, isSelected, onPress, onMove, colors
       alignItems: 'center',
     },
     itemContainerSelected: {
-      backgroundColor: colors.blue + '20',
+      backgroundColor: colors.accent + '20',
     },
     itemText: {
       color: colors.text,
@@ -183,8 +183,8 @@ const TeacherItem = ({ teacher, isSelecting, isSelected, onPress, onMove, colors
       alignItems: 'center',
     },
     checkboxSelected: {
-      backgroundColor: colors.blue,
-      borderColor: colors.blue,
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
     },
     checkmark: {
       color: '#fff',
@@ -619,7 +619,7 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
       alignItems: 'center',
     },
     itemContainerSelected: {
-      backgroundColor: colors.blue + '20',
+      backgroundColor: colors.accent + '20',
     },
     itemText: {
       color: colors.text,
@@ -630,7 +630,7 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
       color: colors.accent,
     },
     moveButton: {
-      backgroundColor: colors.blue,
+      backgroundColor: colors.accent,
       paddingVertical: 6,
       paddingHorizontal: 12,
       borderRadius: 4,
@@ -651,8 +651,8 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
       alignItems: 'center',
     },
     checkboxSelected: {
-      backgroundColor: colors.blue,
-      borderColor: colors.blue,
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
     },
     checkmark: {
       color: '#fff',
