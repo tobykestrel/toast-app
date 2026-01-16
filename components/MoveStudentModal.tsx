@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { getLocArray, Location, Student, Teacher, updateStuLocation, updateTeaLocation } from './LocalData';
+import { getLocArray, Location, Student, Teacher, updateStuLocation, updateTeaLocation, getStuArrayByLocID, getTeaArrayByLocID } from './LocalData';
 
 type MoveItemModalProps = {
   visible: boolean;
   students: (Student | Teacher)[];
   onClose: () => void;
   onMove: () => void;
+  currentLocID?: string;
+  onConfirmationNeeded?: (message: string, onConfirm: () => void) => void;
 };
 
-export default function MoveStudentModal({ visible, students, onClose, onMove }: MoveItemModalProps) {
+export default function MoveStudentModal({ visible, students, onClose, onMove, currentLocID, onConfirmationNeeded }: MoveItemModalProps) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,16 +39,37 @@ export default function MoveStudentModal({ visible, students, onClose, onMove }:
       try {
         // Check if we're dealing with students or teachers
         const isStudent = (item: any) => 'hasMeds' in item;
-        
-        for (const item of students) {
-          if (isStudent(item)) {
-            const studentIds = (students as Student[]).map(s => s.id);
-            await updateStuLocation(studentIds, locID);
-          } else {
-            // Handle teachers
-            for (const teacher of students as Teacher[]) {
-              await updateTeaLocation(teacher.id, locID);
-            }
+        const hasStudents = students.some(isStudent);
+
+        if (hasStudents) {
+          // Check if we need to show a confirmation modal for ratio threshold
+          const studentIds = (students as Student[]).map(s => s.id);
+          const targetLocStudents = await getStuArrayByLocID(locID);
+          const targetLocTeachers = await getTeaArrayByLocID(locID);
+          
+          const newStudentCount = targetLocStudents.length + studentIds.length;
+          const teacherCount = targetLocTeachers.length;
+          const newRatio = teacherCount > 0 ? newStudentCount / teacherCount : 0;
+          
+          if (newRatio > 13) {
+            // Ratio exceeds max threshold - need confirmation
+            const studentLabel = studentIds.length === 1 ? 'this student' : 'these students';
+            const targetLocName = locations.find(l => l.id === locID)?.locationName || locID;
+            const message = `Moving ${studentLabel} to ${targetLocName} will cause the ratio to go above the maximum ratio of 13:1. Are you sure you want to continue?`;
+            
+            onConfirmationNeeded?.(message, async () => {
+              await updateStuLocation(studentIds, locID);
+              onMove();
+              onClose();
+            });
+            return;
+          }
+
+          await updateStuLocation(studentIds, locID);
+        } else {
+          // Handle teachers
+          for (const teacher of students as Teacher[]) {
+            await updateTeaLocation(teacher.id, locID);
           }
         }
         

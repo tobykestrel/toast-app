@@ -3,6 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, Modal, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import CustomCheckbox from "../../components/CustomCheckbox";
 import { Student, Teacher, getStuArray, getTeaArray, initializeStuData, updateStuLocation } from "../../components/LocalData";
 
 const getGradeColor = (grade: number): string => {
@@ -27,15 +28,6 @@ const getLocationName = (locID: string): string => {
   return locationMap[locID] || locID;
 };
 
-const CustomCheckbox = ({ value, onValueChange, color }: { value: boolean; onValueChange: () => void, color?: string }) => (
-  <TouchableOpacity
-    style={[styles.customCheckbox, value && styles.customCheckboxChecked, color && { backgroundColor: color }, color && { borderColor: color }]}
-    onPress={onValueChange}
-  >
-    {value && <Text style={styles.checkmark}>✓</Text>}
-  </TouchableOpacity>
-);
-
 type PersonItem = Student | Teacher;
 
 const HomeStatsBar = ({
@@ -43,8 +35,8 @@ const HomeStatsBar = ({
   totalTeachers,
   showTeachers,
   onToggleTeachers,
-  showNonPresent,
-  onToggleNonPresent,
+  showPresent,
+  onTogglePresent,
   selectedGrades,
   onToggleGrade,
 }: {
@@ -52,8 +44,8 @@ const HomeStatsBar = ({
   totalTeachers: number;
   showTeachers: boolean;
   onToggleTeachers: (value: boolean) => void;
-  showNonPresent: boolean;
-  onToggleNonPresent: (value: boolean) => void;
+  showPresent: boolean;
+  onTogglePresent: (value: boolean) => void;
   selectedGrades: Set<number>;
   onToggleGrade: (grade: number) => void;
 }) => (
@@ -72,6 +64,27 @@ const HomeStatsBar = ({
       )}
     </View>
 
+    <View style={styles.switchContainer}>
+      <View style={styles.switchItem}>
+        <Text style={styles.switchLabel}>{showPresent ? 'Present' : 'Absent'}</Text>
+        <Switch
+          value={showPresent}
+          onValueChange={onTogglePresent}
+          trackColor={{ false: '#555', true: '#48bb78' }}
+          thumbColor={showPresent ? '#fff' : '#ccc'}
+        />
+      </View>
+      <View style={styles.switchItem}>
+        <Text style={styles.switchLabel}>{showTeachers ? 'Teachers' : 'Students'}</Text>
+        <Switch
+          value={!showTeachers}
+          onValueChange={(val) => onToggleTeachers(!val)}
+          trackColor={{ false: '#555', true: '#48bb78' }}
+          thumbColor={!showTeachers ? '#fff' : '#ccc'}
+        />
+      </View>
+    </View>
+
     {!showTeachers && (
       <View style={styles.gradesContainer}>
         {[2, 3, 4].map((grade) => (
@@ -86,27 +99,6 @@ const HomeStatsBar = ({
         ))}
       </View>
     )}
-
-    <View style={styles.switchContainer}>
-      <View style={styles.switchItem}>
-        <Text style={styles.switchLabel}>Non-Present</Text>
-        <Switch
-          value={showNonPresent}
-          onValueChange={onToggleNonPresent}
-          trackColor={{ false: '#555', true: '#48bb78' }}
-          thumbColor={showNonPresent ? '#fff' : '#ccc'}
-        />
-      </View>
-      <View style={styles.switchItem}>
-        <Text style={styles.switchLabel}>{showTeachers ? 'Teachers' : 'Students'}</Text>
-        <Switch
-          value={!showTeachers}
-          onValueChange={(val) => onToggleTeachers(!val)}
-          trackColor={{ false: '#555', true: '#48bb78' }}
-          thumbColor={!showTeachers ? '#fff' : '#ccc'}
-        />
-      </View>
-    </View>
   </View>
 );
 
@@ -235,7 +227,7 @@ export default function Index() {
   const [allTeachers, setAllTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTeachers, setShowTeachers] = useState(false);
-  const [showNonPresent, setShowNonPresent] = useState(false);
+  const [showPresent, setShowPresent] = useState(true);
   const [selectedGrades, setSelectedGrades] = useState<Set<number>>(new Set([2, 3, 4]));
   const [optionsModalVisible, setOptionsModalVisible] = useState(false);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
@@ -268,6 +260,7 @@ export default function Index() {
 
   const filteredData = showTeachers
     ? allTeachers
+        .filter((t) => t.present === showPresent)
         .filter((t) => {
           if (!searchQuery.trim()) return true;
           const query = searchQuery.toLowerCase();
@@ -279,7 +272,7 @@ export default function Index() {
         })
     : allStudents
         .filter((s) => selectedGrades.has(s.grade))
-        .filter((s) => showNonPresent || s.present === true)
+        .filter((s) => s.present === showPresent)
         .filter((s) => {
           if (!searchQuery.trim()) return true;
           const query = searchQuery.toLowerCase();
@@ -292,8 +285,9 @@ export default function Index() {
 
   const displayStudentCount = allStudents
     .filter((s) => selectedGrades.has(s.grade))
-    .filter((s) => showNonPresent || s.present === true).length;
-  const displayTeacherCount = allTeachers.length;
+    .filter((s) => s.present === showPresent).length;
+  const displayTeacherCount = allTeachers
+    .filter((t) => t.present === showPresent).length;
 
   const handleOptions = (person: PersonItem) => {
     setSelectedPerson(person);
@@ -340,8 +334,8 @@ export default function Index() {
           totalTeachers={totalTeachers}
           showTeachers={showTeachers}
           onToggleTeachers={setShowTeachers}
-          showNonPresent={showNonPresent}
-          onToggleNonPresent={setShowNonPresent}
+          showPresent={showPresent}
+          onTogglePresent={setShowPresent}
           selectedGrades={selectedGrades}
           onToggleGrade={handleToggleGrade}
         />
@@ -446,9 +440,10 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   switchContainer: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    justifyContent: 'center',
   },
   switchItem: {
     flexDirection: 'row',
@@ -458,24 +453,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#aaa',
     marginRight: 8,
-  },
-  customCheckbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
-    borderColor: '#aaa',
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  customCheckboxChecked: {
-    backgroundColor: '#48bb78',
-    borderColor: '#48bb78',
-  },
-  checkmark: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#fff',
   },
   itemContainer: {
     backgroundColor: '#3c4755',

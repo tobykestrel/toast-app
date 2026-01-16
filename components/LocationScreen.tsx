@@ -4,22 +4,27 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AwaitingStudentsList from "./AwaitingStudentsList";
+import ConfirmationModal from "./ConfirmationModal";
+import CustomCheckbox from "./CustomCheckbox";
 import { Student, Teacher, getStuArrayByLocID, getStuArrayByLocIDAwaiting, getTeaArrayByLocID, initializeStuData } from "./LocalData";
 import MoveStudentModal from "./MoveStudentModal";
+
+// Ratio thresholds
+const RATIO_WARN_THRESHOLD = 10;
+const RATIO_MAX_THRESHOLD = 13;
+
+const getLocationName = (locID: string): string => {
+  const locationMap: { [key: string]: string } = {
+    'loc001': 'Cafeteria',
+    'loc002': 'Outside',
+    'loc003': 'Gym',
+  };
+  return locationMap[locID] || locID;
+};
 
 type LocationScreenProps = {
   locID: string;
 };
-
-// Custom checkbox
-const CustomCheckbox = ({ value, onValueChange, color }: { value: boolean; onValueChange: () => void; color?: string }) => (
-  <TouchableOpacity
-    style={[styles.locCheckbox, { borderColor: color || '#aaa' }, value && { backgroundColor: color || '#48bb78', borderColor: color || '#48bb78' }]}
-    onPress={onValueChange}
-  >
-    {value && <Text style={styles.locCheckmark}>✓</Text>}
-  </TouchableOpacity>
-);
 
 // Get color for grade border
 const getGradeColor = (grade: number): string => {
@@ -120,7 +125,6 @@ const SelectionHeader = ({ count, onClose, onMoveAll, itemType = 'Student' }: { 
 type StatsHeaderProps = {
   studentCount: number;
   teacherCount: number;
-  studentsWithMeds: number;
   showStudents: boolean;
   onToggleView: (value: boolean) => void;
   selectedGrades: Set<number>;
@@ -131,39 +135,54 @@ const getGradeLabel = (grade: number): string => {
   return `${grade}${grade === 2 ? 'nd' : grade === 3 ? 'rd' : 'th'} Grade`;
 };
 
-const StatsHeader = ({ studentCount, teacherCount, studentsWithMeds, showStudents, onToggleView, selectedGrades, onToggleGrade }: StatsHeaderProps) => {
-  const ratio = teacherCount > 0 ? (studentCount / teacherCount).toFixed(1) : 'N/A';
+const getRatioColor = (ratio: number): string => {
+  if (ratio > RATIO_MAX_THRESHOLD) return '#ef4444'; // red
+  if (ratio > RATIO_WARN_THRESHOLD) return '#eab308'; // yellow
+  return '#fff';
+};
+
+const StatsHeader = ({ studentCount, teacherCount, showStudents, onToggleView, selectedGrades, onToggleGrade }: StatsHeaderProps) => {
+  const ratio = teacherCount > 0 ? (studentCount / teacherCount) : 0;
+  const ratioText = teacherCount > 0 ? ratio.toFixed(1) : 'N/A';
   
   return (
     <View style={styles.statsBox}>
-      <View style={styles.statsContent}>
-        {showStudents ? (
-          <>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Students</Text>
-              <Text style={styles.statValue}>{studentCount}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>With Meds</Text>
-              <Text style={styles.statValue}>{studentsWithMeds}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Ratio</Text>
-              <Text style={styles.statValue}>{ratio} : 1</Text>
-            </View>
-          </>
-        ) : (
-          <>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Teachers</Text>
-              <Text style={styles.statValue}>{teacherCount}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Student/Tea</Text>
-              <Text style={styles.statValue}>{ratio}:1</Text>
-            </View>
-          </>
-        )}
+      <View style={styles.statsTopRow}>
+        <View style={styles.statsContent}>
+          {showStudents ? (
+            <>
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>Students</Text>
+                <Text style={styles.statValue}>{studentCount}</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>Ratio</Text>
+                <Text style={[styles.statValue, { color: getRatioColor(ratio) }]}>{ratioText} : 1</Text>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>Teachers</Text>
+                <Text style={styles.statValue}>{teacherCount}</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>Student/Tea</Text>
+                <Text style={[styles.statValue, { color: getRatioColor(ratio) }]}>{ratioText}:1</Text>
+              </View>
+            </>
+          )}
+        </View>
+
+        <View style={styles.toggleContainer}>
+          <Text style={styles.toggleLabel}>{showStudents ? 'Students' : 'Teachers'}</Text>
+          <Switch
+            value={showStudents}
+            onValueChange={onToggleView}
+            trackColor={{ false: '#555', true: '#48bb78' }}
+            thumbColor={showStudents ? '#fff' : '#ccc'}
+          />
+        </View>
       </View>
 
       {showStudents && (
@@ -174,22 +193,13 @@ const StatsHeader = ({ studentCount, teacherCount, studentsWithMeds, showStudent
                 value={selectedGrades.has(grade)}
                 onValueChange={() => onToggleGrade(grade)}
                 color={getGradeColor(grade)}
+                size="small"
               />
               <Text style={styles.gradeLabel}>{getGradeLabel(grade)}</Text>
             </View>
           ))}
         </View>
       )}
-
-      <View style={styles.toggleContainer}>
-        <Text style={styles.toggleLabel}>{showStudents ? 'Students' : 'Teachers'}</Text>
-        <Switch
-          value={showStudents}
-          onValueChange={onToggleView}
-          trackColor={{ false: '#555', true: '#48bb78' }}
-          thumbColor={showStudents ? '#fff' : '#ccc'}
-        />
-      </View>
     </View>
   );
 };
@@ -207,6 +217,9 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
   const [showStudents, setShowStudents] = useState(true);
   const [selectedGrades, setSelectedGrades] = useState<Set<number>>(new Set([2, 3, 4]));
   const [searchQuery, setSearchQuery] = useState('');
+  const [confirmationVisible, setConfirmationVisible] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState('');
+  const [confirmationCallback, setConfirmationCallback] = useState<(() => void) | null>(null);
   const justActivatedIDRef = useRef<string | null>(null);
   
   const loadStudents = async () => {
@@ -357,7 +370,6 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
 
   const selectedStudentObjects = students.filter(s => selectedStudents.has(s.id));
   const selectedTeacherObjects = teachers.filter(t => selectedTeachers.has(t.id));
-  const studentsWithMeds = sortedStudents.filter(s => s.hasMeds).length;
   const currentSelection = showStudents ? selectedStudents : selectedTeachers;
 
   const handleToggleGrade = (grade: number) => {
@@ -384,7 +396,6 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
           <StatsHeader
             studentCount={sortedStudents.length}
             teacherCount={sortedTeachers.length}
-            studentsWithMeds={studentsWithMeds}
             showStudents={showStudents}
             onToggleView={setShowStudents}
             selectedGrades={selectedGrades}
@@ -425,6 +436,21 @@ export default function LocationScreen({ locID }: LocationScreenProps) {
           students={showStudents ? selectedStudentObjects : selectedTeacherObjects as any}
           onClose={() => setModalVisible(false)}
           onMove={handleMoveComplete}
+          currentLocID={locID}
+          onConfirmationNeeded={(message, callback) => {
+            setConfirmationMessage(message);
+            setConfirmationCallback(() => callback);
+            setConfirmationVisible(true);
+          }}
+        />
+        <ConfirmationModal
+          visible={confirmationVisible}
+          title={confirmationMessage}
+          onCancel={() => setConfirmationVisible(false)}
+          onConfirm={() => {
+            confirmationCallback?.();
+            setConfirmationVisible(false);
+          }}
         />
       </SafeAreaView>
     </SafeAreaProvider>
@@ -450,13 +476,16 @@ const styles = StyleSheet.create({
   },
   statsBox: {
     backgroundColor: '#3c4755',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#2a2f35',
+  },
+  statsTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   statsContent: {
     flex: 1,
@@ -477,43 +506,29 @@ const styles = StyleSheet.create({
     color: '#48bb78',
   },
   gradesContainer: {
-    marginBottom: 12,
+    marginTop: 12,
     paddingHorizontal: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
   gradeCheckbox: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 4,
   },
   gradeLabel: {
     color: '#aaa',
     fontSize: 12,
     marginLeft: 8,
   },
-  locCheckbox: {
-    width: 16,
-    height: 16,
-    borderWidth: 2,
-    borderRadius: 3,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  locCheckmark: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
   toggleContainer: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
     marginLeft: 15,
-    gap: 3
   },
   toggleLabel: {
     fontSize: 12,
     color: '#aaa',
     marginRight: 8,
-    marginTop: 14,
   },
   selectionHeader: {
     backgroundColor: '#3c4755',

@@ -23,7 +23,97 @@
     "lastName": "Apple",
     "dob": "2005-08-08",
     "days": ["Mon", "Tue", "Wed", "Thu"],
+    "currentLocID": "none",
+    "present": false
+  },
+  {
+    "id": "tea004",
+    "firstName": "Bella",
+    "lastName": "Baker",
+    "dob": "1988-06-20",
+    "days": ["Tue", "Wed", "Thu", "Fri"],
+    "currentLocID": "loc003",
+    "present": true
+  },
+  {
+    "id": "tea005",
+    "firstName": "Carlos",
+    "lastName": "Carter",
+    "dob": "1992-01-15",
+    "days": ["Mon", "Tue", "Wed", "Fri"],
+    "currentLocID": "loc001",
+    "present": true
+  },
+  {
+    "id": "tea006",
+    "firstName": "Diana",
+    "lastName": "Dixon",
+    "dob": "1987-09-03",
+    "days": ["Mon", "Wed", "Thu", "Fri"],
     "currentLocID": "loc002",
+    "present": true
+  },
+  {
+    "id": "tea007",
+    "firstName": "Ethan",
+    "lastName": "Evans",
+    "dob": "1991-04-22",
+    "days": ["Tue", "Wed", "Thu"],
+    "currentLocID": "none",
+    "present": false
+  },
+  {
+    "id": "tea008",
+    "firstName": "Fiona",
+    "lastName": "Fisher",
+    "dob": "1989-11-10",
+    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    "currentLocID": "none",
+    "present": false
+  },
+  {
+    "id": "tea009",
+    "firstName": "George",
+    "lastName": "Garcia",
+    "dob": "1986-07-28",
+    "days": ["Wed", "Thu", "Fri"],
+    "currentLocID": "loc002",
+    "present": true
+  },
+  {
+    "id": "tea010",
+    "firstName": "Hannah",
+    "lastName": "Harrison",
+    "dob": "1993-03-14",
+    "days": ["Mon", "Tue", "Fri"],
+    "currentLocID": "loc003",
+    "present": true
+  },
+  {
+    "id": "tea011",
+    "firstName": "Isaac",
+    "lastName": "Irving",
+    "dob": "1990-12-05",
+    "days": ["Mon", "Tue", "Wed", "Thu"],
+    "currentLocID": "none",
+    "present": false
+  },
+  {
+    "id": "tea012",
+    "firstName": "Julia",
+    "lastName": "Johnson",
+    "dob": "1988-10-18",
+    "days": ["Tue", "Wed", "Thu", "Fri"],
+    "currentLocID": "none",
+    "present": false
+  },
+  {
+    "id": "tea013",
+    "firstName": "Kevin",
+    "lastName": "Knight",
+    "dob": "1991-05-09",
+    "days": ["Mon", "Wed", "Fri"],
+    "currentLocID": "none",
     "present": false
   }
 ]
