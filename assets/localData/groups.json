@@ -1,0 +1,17 @@
+[
+  {
+    "id": "grade2",
+    "name": "2nd Grade",
+    "color": "#3b82f6"
+  },
+  {
+    "id": "grade3",
+    "name": "3rd Grade",
+    "color": "#22c55e"
+  },
+  {
+    "id": "grade4",
+    "name": "4th Grade",
+    "color": "#ef4444"
+  }
+]

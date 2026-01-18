@@ -1,32 +1,31 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   FlatList,
+  Modal,
+  StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
-  Modal,
-} from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { useTheme } from '../constants/ThemeContext';
-import { Teacher, getTeaArray, updateTeaProfile } from './LocalData';
-import CustomCheckbox from './CustomCheckbox';
-import ProfileModal from './ProfileModal';
-
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../constants/ThemeContext";
+import CustomCheckbox from "./CustomCheckbox";
+import { Teacher, getTeaArray, updateTeaProfile } from "./LocalData";
 
 type EditTeachersScreenProps = {
   onBack: () => void;
 };
 
-export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) {
+export default function EditTeachersScreen({
+  onBack,
+}: EditTeachersScreenProps) {
   const { colors } = useTheme();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [profileVisible, setProfileVisible] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [editForm, setEditForm] = useState<Partial<Teacher>>({});
@@ -36,7 +35,7 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
       const teaArray = await getTeaArray();
       setTeachers(teaArray);
     } catch (err) {
-      console.error('Failed to load teachers:', err);
+      console.error("Failed to load teachers:", err);
     } finally {
       setLoading(false);
     }
@@ -49,15 +48,18 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
   useFocusEffect(
     useCallback(() => {
       loadTeachers();
-    }, [loadTeachers])
+    }, [loadTeachers]),
   );
 
   useEffect(() => {
     let filtered = teachers
-      .filter(t => {
+      .filter((t) => {
         if (!searchQuery.trim()) return true;
         const query = searchQuery.toLowerCase();
-        return t.firstName.toLowerCase().includes(query) || t.lastName.toLowerCase().includes(query);
+        return (
+          t.firstName.toLowerCase().includes(query) ||
+          t.lastName.toLowerCase().includes(query)
+        );
       })
       .sort((a, b) => {
         const fnCmp = a.firstName.localeCompare(b.firstName);
@@ -85,17 +87,16 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
       setEditVisible(false);
       setSelectedTeacher(null);
     } catch (err) {
-      console.error('Failed to save teacher:', err);
+      console.error("Failed to save teacher:", err);
     }
   };
-
 
   const toggleDay = (day: string) => {
     const currentDays = editForm.days || [];
     const newDays = currentDays.includes(day)
-      ? currentDays.filter(d => d !== day)
+      ? currentDays.filter((d) => d !== day)
       : [...currentDays, day];
-    setEditForm(prev => ({ ...prev, days: newDays }));
+    setEditForm((prev) => ({ ...prev, days: newDays }));
   };
 
   const themedStyles = StyleSheet.create({
@@ -107,8 +108,8 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
       backgroundColor: colors.container,
       paddingHorizontal: 16,
       paddingVertical: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 12,
     },
     backButton: {
@@ -120,7 +121,7 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
     },
     headerTitle: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text,
       flex: 1,
     },
@@ -141,9 +142,9 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
       padding: 12,
       marginVertical: 1,
       marginHorizontal: 5,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
     },
     teacherInfo: {
       flex: 1,
@@ -151,44 +152,39 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
     teacherName: {
       fontSize: 16,
       color: colors.text,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     teacherButtonRow: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: 8,
     },
     button: {
       paddingVertical: 6,
       paddingHorizontal: 10,
       borderRadius: 4,
-    },
-    viewButton: {
-      backgroundColor: colors.blue,
-    },
-    editButton: {
       backgroundColor: colors.accent,
     },
     buttonText: {
       fontSize: 12,
-      fontWeight: '600',
-      color: '#ffffff',
+      fontWeight: "600",
+      color: "#ffffff",
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      justifyContent: "center",
+      alignItems: "center",
     },
     modalContent: {
       backgroundColor: colors.containerSecondary,
       borderRadius: 12,
       padding: 20,
-      width: '90%',
+      width: "90%",
       maxWidth: 500,
     },
     modalTitle: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text,
       marginBottom: 16,
     },
@@ -197,7 +193,7 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
     },
     label: {
       fontSize: 12,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.textMuted,
       marginBottom: 6,
     },
@@ -211,13 +207,13 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
       fontSize: 14,
     },
     daysContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: 8,
     },
     dayCheckbox: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 6,
       flex: 0.48,
     },
@@ -226,7 +222,7 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
       color: colors.textMuted,
     },
     buttonRow: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: 12,
       marginTop: 16,
     },
@@ -235,14 +231,14 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
       backgroundColor: colors.red,
       paddingVertical: 12,
       borderRadius: 6,
-      alignItems: 'center',
+      alignItems: "center",
     },
     saveButton: {
       flex: 1,
       backgroundColor: colors.accent,
       paddingVertical: 12,
       borderRadius: 6,
-      alignItems: 'center',
+      alignItems: "center",
     },
   });
 
@@ -276,35 +272,19 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
         renderItem={({ item }) => (
           <View style={themedStyles.teacherItem}>
             <View style={themedStyles.teacherInfo}>
-              <Text style={themedStyles.teacherName}>{item.firstName} {item.lastName}</Text>
+              <Text style={themedStyles.teacherName}>
+                {item.firstName} {item.lastName}
+              </Text>
             </View>
-            <View style={themedStyles.teacherButtonRow}>
-              <TouchableOpacity
-                style={[themedStyles.button, themedStyles.viewButton]}
-                onPress={() => {
-                  setSelectedTeacher(item);
-                  setProfileVisible(true);
-                }}
-              >
-                <Text style={themedStyles.buttonText}>View</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[themedStyles.button, themedStyles.editButton]}
-                onPress={() => handleEditTeacher(item)}
-              >
-                <Text style={themedStyles.buttonText}>Edit</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={themedStyles.button}
+              onPress={() => handleEditTeacher(item)}
+            >
+              <Text style={themedStyles.buttonText}>Edit</Text>
+            </TouchableOpacity>
           </View>
         )}
         keyExtractor={(item) => item.id}
-      />
-
-      <ProfileModal
-        visible={profileVisible}
-        person={selectedTeacher}
-        isStudent={false}
-        onClose={() => setProfileVisible(false)}
       />
 
       <Modal visible={editVisible} transparent animationType="fade">
@@ -316,8 +296,10 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
               <Text style={themedStyles.label}>First Name</Text>
               <TextInput
                 style={themedStyles.input}
-                value={editForm.firstName || ''}
-                onChangeText={(text) => setEditForm(prev => ({ ...prev, firstName: text }))}
+                value={editForm.firstName || ""}
+                onChangeText={(text) =>
+                  setEditForm((prev) => ({ ...prev, firstName: text }))
+                }
                 placeholderTextColor={colors.textMuted}
               />
             </View>
@@ -326,8 +308,10 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
               <Text style={themedStyles.label}>Last Name</Text>
               <TextInput
                 style={themedStyles.input}
-                value={editForm.lastName || ''}
-                onChangeText={(text) => setEditForm(prev => ({ ...prev, lastName: text }))}
+                value={editForm.lastName || ""}
+                onChangeText={(text) =>
+                  setEditForm((prev) => ({ ...prev, lastName: text }))
+                }
                 placeholderTextColor={colors.textMuted}
               />
             </View>
@@ -336,8 +320,10 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
               <Text style={themedStyles.label}>Date of Birth (YYYY-MM-DD)</Text>
               <TextInput
                 style={themedStyles.input}
-                value={editForm.dob || ''}
-                onChangeText={(text) => setEditForm(prev => ({ ...prev, dob: text }))}
+                value={editForm.dob || ""}
+                onChangeText={(text) =>
+                  setEditForm((prev) => ({ ...prev, dob: text }))
+                }
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor={colors.textMuted}
               />
@@ -346,7 +332,7 @@ export default function EditTeachersScreen({ onBack }: EditTeachersScreenProps) 
             <View style={themedStyles.formGroup}>
               <Text style={themedStyles.label}>Days</Text>
               <View style={themedStyles.daysContainer}>
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day) => (
+                {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => (
                   <TouchableOpacity
                     key={day}
                     style={themedStyles.dayCheckbox}

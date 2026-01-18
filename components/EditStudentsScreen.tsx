@@ -1,56 +1,67 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   FlatList,
+  Modal,
+  StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
-  Modal,
-} from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { useTheme } from '../constants/ThemeContext';
-import { Student, getStuArray, updateStuProfile } from './LocalData';
-import CustomCheckbox from './CustomCheckbox';
-import ProfileModal from './ProfileModal';
-
-
-const getGradeColor = (grade: number): string => {
-  switch (grade) {
-    case 2: return '#3b82f6';
-    case 3: return '#22c55e';
-    case 4: return '#ef4444';
-    default: return '#6b7280';
-  }
-};
-
-const getGradeLabel = (grade: number): string => {
-  return `${grade}${grade === 2 ? 'nd' : grade === 3 ? 'rd' : 'th'} Grade`;
-};
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../constants/ThemeContext";
+import CustomCheckbox from "./CustomCheckbox";
+import {
+  Student,
+  getGruArray,
+  getStuArray,
+  updateStuProfile,
+} from "./LocalData";
 
 type EditStudentsScreenProps = {
   onBack: () => void;
 };
 
-export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) {
+export default function EditStudentsScreen({
+  onBack,
+}: EditStudentsScreenProps) {
   const { colors } = useTheme();
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGrades, setSelectedGrades] = useState<Set<number>>(new Set([2, 3, 4]));
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [profileVisible, setProfileVisible] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [editForm, setEditForm] = useState<Partial<Student>>({});
+  const [colorMap, setColorMap] = useState<{ [key: string]: string }>({});
+  const [labelMap, setLabelMap] = useState<{ [key: string]: string }>({});
+  const [groupIds, setGroupIds] = useState<string[]>([]);
 
   const loadStudents = useCallback(async () => {
     try {
       const stuArray = await getStuArray();
       setStudents(stuArray);
+
+      // Load group colors and names
+      const gruArray = await getGruArray();
+      const colors: { [key: string]: string } = {};
+      const labels: { [key: string]: string } = {};
+      const ids: string[] = [];
+
+      for (const group of gruArray) {
+        colors[group.id] = group.color || "#6b7280";
+        labels[group.id] = group.name || "Unknown Group";
+        ids.push(group.id);
+      }
+
+      setColorMap(colors);
+      setLabelMap(labels);
+      setGroupIds(ids);
+      setSelectedGroups(new Set(ids));
     } catch (err) {
-      console.error('Failed to load students:', err);
+      console.error("Failed to load students:", err);
     } finally {
       setLoading(false);
     }
@@ -63,32 +74,35 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
   useFocusEffect(
     useCallback(() => {
       loadStudents();
-    }, [loadStudents])
+    }, [loadStudents]),
   );
 
   useEffect(() => {
     let filtered = students
-      .filter(s => selectedGrades.has(s.grade))
-      .filter(s => {
+      .filter((s) => selectedGroups.has(s.groupID))
+      .filter((s) => {
         if (!searchQuery.trim()) return true;
         const query = searchQuery.toLowerCase();
-        return s.firstName.toLowerCase().includes(query) || s.lastName.toLowerCase().includes(query);
+        return (
+          s.firstName.toLowerCase().includes(query) ||
+          s.lastName.toLowerCase().includes(query)
+        );
       })
       .sort((a, b) => {
         const fnCmp = a.firstName.localeCompare(b.firstName);
         return fnCmp !== 0 ? fnCmp : a.lastName.localeCompare(b.lastName);
       });
     setFilteredStudents(filtered);
-  }, [students, searchQuery, selectedGrades]);
+  }, [students, searchQuery, selectedGroups]);
 
-  const handleToggleGrade = (grade: number) => {
-    const newGrades = new Set(selectedGrades);
-    if (newGrades.has(grade)) {
-      newGrades.delete(grade);
+  const handleToggleGroup = (groupID: string) => {
+    const newGroups = new Set(selectedGroups);
+    if (newGroups.has(groupID)) {
+      newGroups.delete(groupID);
     } else {
-      newGrades.add(grade);
+      newGroups.add(groupID);
     }
-    setSelectedGrades(newGrades);
+    setSelectedGroups(newGroups);
   };
 
   const handleEditStudent = (student: Student) => {
@@ -97,7 +111,7 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
       firstName: student.firstName,
       lastName: student.lastName,
       dob: student.dob,
-      grade: student.grade,
+      groupID: student.groupID,
       hasMeds: student.hasMeds,
       days: [...student.days],
     });
@@ -112,17 +126,16 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
       setEditVisible(false);
       setSelectedStudent(null);
     } catch (err) {
-      console.error('Failed to save student:', err);
+      console.error("Failed to save student:", err);
     }
   };
-
 
   const toggleDay = (day: string) => {
     const currentDays = editForm.days || [];
     const newDays = currentDays.includes(day)
-      ? currentDays.filter(d => d !== day)
+      ? currentDays.filter((d) => d !== day)
       : [...currentDays, day];
-    setEditForm(prev => ({ ...prev, days: newDays }));
+    setEditForm((prev) => ({ ...prev, days: newDays }));
   };
 
   const themedStyles = StyleSheet.create({
@@ -134,8 +147,8 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
       backgroundColor: colors.container,
       paddingHorizontal: 16,
       paddingVertical: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 12,
     },
     backButton: {
@@ -147,7 +160,7 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
     },
     headerTitle: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text,
       flex: 1,
     },
@@ -164,15 +177,15 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
       fontSize: 14,
     },
     filterContainer: {
-      flexDirection: 'row',
+      flexDirection: "row",
       paddingHorizontal: 12,
       paddingVertical: 8,
       gap: 12,
-      justifyContent: 'center',
+      justifyContent: "center",
     },
     filterCheckbox: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 6,
     },
     filterLabel: {
@@ -184,9 +197,9 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
       padding: 12,
       marginVertical: 1,
       marginHorizontal: 5,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       borderLeftWidth: 4,
     },
     studentInfo: {
@@ -195,15 +208,15 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
     studentName: {
       fontSize: 16,
       color: colors.text,
-      fontWeight: '500',
+      fontWeight: "500",
     },
-    studentGrade: {
+    studentGroup: {
       fontSize: 12,
       color: colors.textMuted,
       marginTop: 4,
     },
     studentButtonRow: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: 8,
     },
     button: {
@@ -219,25 +232,25 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
     },
     buttonText: {
       fontSize: 12,
-      fontWeight: '600',
-      color: '#ffffff',
+      fontWeight: "600",
+      color: "#ffffff",
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      justifyContent: "center",
+      alignItems: "center",
     },
     modalContent: {
       backgroundColor: colors.containerSecondary,
       borderRadius: 12,
       padding: 20,
-      width: '90%',
+      width: "90%",
       maxWidth: 500,
     },
     modalTitle: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text,
       marginBottom: 16,
     },
@@ -246,7 +259,7 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
     },
     label: {
       fontSize: 12,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.textMuted,
       marginBottom: 6,
     },
@@ -268,19 +281,19 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
       color: colors.text,
     },
     daysContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: 8,
     },
     dayCheckbox: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 6,
       flex: 0.48,
     },
     medsCheckbox: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 8,
       paddingVertical: 8,
     },
@@ -289,7 +302,7 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
       color: colors.text,
     },
     buttonRow: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: 12,
       marginTop: 16,
     },
@@ -298,14 +311,14 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
       backgroundColor: colors.red,
       paddingVertical: 12,
       borderRadius: 6,
-      alignItems: 'center',
+      alignItems: "center",
     },
     saveButton: {
       flex: 1,
       backgroundColor: colors.accent,
       paddingVertical: 12,
       borderRadius: 6,
-      alignItems: 'center',
+      alignItems: "center",
     },
   });
 
@@ -335,19 +348,21 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
       />
 
       <View style={themedStyles.filterContainer}>
-        {[2, 3, 4].map((grade) => (
+        {groupIds.map((gruID) => (
           <TouchableOpacity
-            key={grade}
+            key={gruID}
             style={themedStyles.filterCheckbox}
-            onPress={() => handleToggleGrade(grade)}
+            onPress={() => handleToggleGroup(gruID)}
           >
             <CustomCheckbox
-              value={selectedGrades.has(grade)}
-              onValueChange={() => handleToggleGrade(grade)}
-              color={getGradeColor(grade)}
-              size="small"
+              value={selectedGroups.has(gruID)}
+              onValueChange={() => handleToggleGroup(gruID)}
+              color={colorMap[gruID] || colors.accent}
+              size="medium"
             />
-            <Text style={themedStyles.filterLabel}>{getGradeLabel(grade)}</Text>
+            <Text style={themedStyles.filterLabel}>
+              {labelMap[gruID] || "Unknown"}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -355,21 +370,21 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
       <FlatList
         data={filteredStudents}
         renderItem={({ item }) => (
-          <View style={[themedStyles.studentItem, { borderLeftColor: getGradeColor(item.grade) }]}>
+          <View
+            style={[
+              themedStyles.studentItem,
+              { borderLeftColor: colorMap[item.groupID] || "#6b7280" },
+            ]}
+          >
             <View style={themedStyles.studentInfo}>
-              <Text style={themedStyles.studentName}>{item.firstName} {item.lastName}</Text>
-              <Text style={themedStyles.studentGrade}>{getGradeLabel(item.grade)}</Text>
+              <Text style={themedStyles.studentName}>
+                {item.firstName} {item.lastName}
+              </Text>
+              <Text style={themedStyles.studentGroup}>
+                {labelMap[item.groupID] || "Unknown Group"}
+              </Text>
             </View>
             <View style={themedStyles.studentButtonRow}>
-              <TouchableOpacity
-                style={[themedStyles.button, themedStyles.viewButton]}
-                onPress={() => {
-                  setSelectedStudent(item);
-                  setProfileVisible(true);
-                }}
-              >
-                <Text style={themedStyles.buttonText}>View</Text>
-              </TouchableOpacity>
               <TouchableOpacity
                 style={[themedStyles.button, themedStyles.editButton]}
                 onPress={() => handleEditStudent(item)}
@@ -382,13 +397,6 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
         keyExtractor={(item) => item.id}
       />
 
-      <ProfileModal
-        visible={profileVisible}
-        person={selectedStudent}
-        isStudent={true}
-        onClose={() => setProfileVisible(false)}
-      />
-
       <Modal visible={editVisible} transparent animationType="fade">
         <View style={themedStyles.modalOverlay}>
           <View style={themedStyles.modalContent}>
@@ -398,8 +406,10 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
               <Text style={themedStyles.label}>First Name</Text>
               <TextInput
                 style={themedStyles.input}
-                value={editForm.firstName || ''}
-                onChangeText={(text) => setEditForm(prev => ({ ...prev, firstName: text }))}
+                value={editForm.firstName || ""}
+                onChangeText={(text) =>
+                  setEditForm((prev) => ({ ...prev, firstName: text }))
+                }
                 placeholderTextColor={colors.textMuted}
               />
             </View>
@@ -408,8 +418,10 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
               <Text style={themedStyles.label}>Last Name</Text>
               <TextInput
                 style={themedStyles.input}
-                value={editForm.lastName || ''}
-                onChangeText={(text) => setEditForm(prev => ({ ...prev, lastName: text }))}
+                value={editForm.lastName || ""}
+                onChangeText={(text) =>
+                  setEditForm((prev) => ({ ...prev, lastName: text }))
+                }
                 placeholderTextColor={colors.textMuted}
               />
             </View>
@@ -418,29 +430,37 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
               <Text style={themedStyles.label}>Date of Birth (YYYY-MM-DD)</Text>
               <TextInput
                 style={themedStyles.input}
-                value={editForm.dob || ''}
-                onChangeText={(text) => setEditForm(prev => ({ ...prev, dob: text }))}
+                value={editForm.dob || ""}
+                onChangeText={(text) =>
+                  setEditForm((prev) => ({ ...prev, dob: text }))
+                }
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor={colors.textMuted}
               />
             </View>
 
             <View style={themedStyles.formGroup}>
-              <Text style={themedStyles.label}>Grade</Text>
+              <Text style={themedStyles.label}>Group</Text>
               <View style={themedStyles.daysContainer}>
-                {[2, 3, 4].map((grade) => (
+                {groupIds.map((groupID) => (
                   <TouchableOpacity
-                    key={grade}
+                    key={groupID}
                     style={[themedStyles.dayCheckbox]}
-                    onPress={() => setEditForm(prev => ({ ...prev, grade }))}
+                    onPress={() =>
+                      setEditForm((prev) => ({ ...prev, groupID }))
+                    }
                   >
                     <CustomCheckbox
-                      value={editForm.grade === grade}
-                      onValueChange={() => setEditForm(prev => ({ ...prev, grade }))}
-                      color={getGradeColor(grade)}
+                      value={editForm.groupID === groupID}
+                      onValueChange={() =>
+                        setEditForm((prev) => ({ ...prev, groupID }))
+                      }
+                      color={colorMap[groupID] || "#6b7280"}
                       size="small"
                     />
-                    <Text style={themedStyles.filterLabel}>{getGradeLabel(grade)}</Text>
+                    <Text style={themedStyles.filterLabel}>
+                      {labelMap[groupID] || "Unknown"}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -449,7 +469,7 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
             <View style={themedStyles.formGroup}>
               <Text style={themedStyles.label}>Days</Text>
               <View style={themedStyles.daysContainer}>
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day) => (
+                {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => (
                   <TouchableOpacity
                     key={day}
                     style={themedStyles.dayCheckbox}
@@ -470,7 +490,9 @@ export default function EditStudentsScreen({ onBack }: EditStudentsScreenProps) 
             <View style={themedStyles.medsCheckbox}>
               <CustomCheckbox
                 value={editForm.hasMeds || false}
-                onValueChange={() => setEditForm(prev => ({ ...prev, hasMeds: !prev.hasMeds }))}
+                onValueChange={() =>
+                  setEditForm((prev) => ({ ...prev, hasMeds: !prev.hasMeds }))
+                }
                 color={colors.red}
                 size="small"
               />

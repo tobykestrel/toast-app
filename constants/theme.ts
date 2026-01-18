@@ -10,10 +10,10 @@ const accentRed = '#ef4444';
 const accentBlue = '#3b82f6';
 const accentYellow = '#eab308';
 
-// Grade colors (same for both themes)
-const gradeBlue = '#3b7df6';
-const gradeGreen = '#1aa783';
-const gradeRed = '#c45353';
+// Group colors (same for both themes)
+const groupBlue = '#3b7df6';
+const groupGreen = '#1aa783';
+const groupRed = '#c45353';
 
 export const Colors = {
   light: {
@@ -39,10 +39,10 @@ export const Colors = {
     blue: accentBlue,
     yellow: accentYellow,
     
-    // Grade colors
-    grade2: gradeBlue,
-    grade3: gradeGreen,
-    grade4: gradeRed,
+    // Group colors
+    group2: groupBlue,
+    group3: groupGreen,
+    group4: groupRed,
     
     // Border and divider
     border: '#d0d0d0',
@@ -71,10 +71,10 @@ export const Colors = {
     blue: accentBlue,
     yellow: accentYellow,
     
-    // Grade colors
-    grade2: gradeBlue,
-    grade3: gradeGreen,
-    grade4: gradeRed,
+    // Group colors
+    group2: groupBlue,
+    group3: groupGreen,
+    group4: groupRed,
     
     // Border and divider
     border: '#555555',

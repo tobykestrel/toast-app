@@ -2,6 +2,9 @@
   "theme": "dark",
   "siteName": "Afterschool Toast",
   "warnThreshold": 10,
+  "warnThresholdEnabled": true,
   "maxThreshold": 13,
-  "notifyThresholdPassed": true
+  "maxThresholdEnabled": true,
+  "notifyThresholdPassed": true,
+  "roundUpRatios": true
 }

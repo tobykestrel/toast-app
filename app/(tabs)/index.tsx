@@ -1,35 +1,43 @@
 // Imports.
-import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, Modal, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import CustomCheckbox from "../../components/CustomCheckbox";
-import { Student, Teacher, getLocArray, getStuArray, getTeaArray, initializeStuData, markStuAbsent, markStuPresent, markTeaAbsent, markTeaPresent } from "../../components/LocalData";
+import {
+  Student,
+  Teacher,
+  getLocArray,
+  getStuArray,
+  getTeaArray,
+  getGruArray,
+  initializeStuData,
+  updateStuPresent,
+  updateStuAbsent,
+  updateTeaPresent,
+  updateTeaAbsent,
+} from "../../components/LocalData";
 import { useTheme } from "../../constants/ThemeContext";
 
-const getGradeColor = (grade: number): string => {
-  switch (grade) {
-    case 2: return '#3b82f6';
-    case 3: return '#22c55e';
-    case 4: return '#ef4444';
-    default: return '#6b7280';
-  }
-};
-
-const getGradeLabel = (grade: number): string => {
-  return `${grade}${grade === 2 ? 'nd' : grade === 3 ? 'rd' : 'th'} Grade`;
-};
-
-const getLocationName = (locID: string): string => {
-  const locationMap: { [key: string]: string } = {
-    'loc001': 'Cafeteria',
-    'loc002': 'Outside',
-    'loc003': 'Gym',
-  };
-  return locationMap[locID] || locID;
-};
-
 type PersonItem = Student | Teacher;
+type PersonItemProps = {
+  person: PersonItem;
+  isStudent: boolean;
+  onOptions: () => void;
+  colors: any;
+  locationMap: { [key: string]: string };
+  colorMap: { [key: string]: string };
+};
 
 const HomeStatsBar = ({
   totalStudents,
@@ -38,9 +46,12 @@ const HomeStatsBar = ({
   onToggleTeachers,
   showPresent,
   onTogglePresent,
-  selectedGrades,
-  onToggleGrade,
+  selectedGroups,
+  onToggleGroup,
   colors,
+  colorMap,
+  labelMap,
+  groupIds,
 }: {
   totalStudents: number;
   totalTeachers: number;
@@ -48,9 +59,12 @@ const HomeStatsBar = ({
   onToggleTeachers: (value: boolean) => void;
   showPresent: boolean;
   onTogglePresent: (value: boolean) => void;
-  selectedGrades: Set<number>;
-  onToggleGrade: (grade: number) => void;
+  selectedGroups: Set<string>;
+  onToggleGroup: (group: string) => void;
   colors: any;
+  colorMap: { [key: string]: string };
+  labelMap: { [key: string]: string };
+  groupIds: string[];
 }) => {
   const themedStyles = StyleSheet.create({
     statsBox: {
@@ -61,12 +75,12 @@ const HomeStatsBar = ({
       borderBottomColor: colors.border,
     },
     statsContent: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
+      flexDirection: "row",
+      justifyContent: "space-around",
       marginBottom: 12,
     },
     statItem: {
-      alignItems: 'center',
+      alignItems: "center",
     },
     statLabel: {
       fontSize: 12,
@@ -75,34 +89,34 @@ const HomeStatsBar = ({
     },
     statValue: {
       fontSize: 18,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: colors.accent,
     },
-    gradesContainer: {
+    GroupsContainer: {
       marginBottom: 12,
       paddingHorizontal: 5,
-      flexDirection: 'row',
-      justifyContent: 'center',
+      flexDirection: "row",
+      justifyContent: "center",
       gap: 12,
     },
-    gradeCheckboxHorizontal: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    groupCheckboxHorizontal: {
+      flexDirection: "row",
+      alignItems: "center",
     },
-    gradeLabel: {
+    groupLabel: {
       color: colors.textMuted,
       fontSize: 12,
       marginLeft: 8,
     },
     switchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 12,
-      justifyContent: 'center',
+      justifyContent: "center",
     },
     switchItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
     },
     switchLabel: {
       fontSize: 12,
@@ -129,7 +143,9 @@ const HomeStatsBar = ({
 
       <View style={themedStyles.switchContainer}>
         <View style={themedStyles.switchItem}>
-          <Text style={themedStyles.switchLabel}>{showPresent ? 'Present' : 'Absent'}</Text>
+          <Text style={themedStyles.switchLabel}>
+            {showPresent ? "Present" : "Absent"}
+          </Text>
           <Switch
             value={showPresent}
             onValueChange={onTogglePresent}
@@ -138,7 +154,9 @@ const HomeStatsBar = ({
           />
         </View>
         <View style={themedStyles.switchItem}>
-          <Text style={themedStyles.switchLabel}>{showTeachers ? 'Teachers' : 'Students'}</Text>
+          <Text style={themedStyles.switchLabel}>
+            {showTeachers ? "Teachers" : "Students"}
+          </Text>
           <Switch
             value={!showTeachers}
             onValueChange={(val) => onToggleTeachers(!val)}
@@ -149,15 +167,17 @@ const HomeStatsBar = ({
       </View>
 
       {!showTeachers && (
-        <View style={themedStyles.gradesContainer}>
-          {[2, 3, 4].map((grade) => (
-            <View key={grade} style={themedStyles.gradeCheckboxHorizontal}>
+        <View style={themedStyles.GroupsContainer}>
+          {groupIds.map((groupID) => (
+            <View key={groupID} style={themedStyles.groupCheckboxHorizontal}>
               <CustomCheckbox
-                value={selectedGrades.has(grade)}
-                onValueChange={() => onToggleGrade(grade)}
-                color={getGradeColor(grade)}
+                value={selectedGroups.has(groupID)}
+                onValueChange={() => onToggleGroup(groupID)}
+                color={(colorMap as any)[groupID] || "#6b7280"}
               />
-              <Text style={themedStyles.gradeLabel}>{getGradeLabel(grade)}</Text>
+              <Text style={themedStyles.groupLabel}>
+                {(labelMap as any)[groupID] || "Unknown"}
+              </Text>
             </View>
           ))}
         </View>
@@ -166,30 +186,32 @@ const HomeStatsBar = ({
   );
 };
 
-type PersonItemProps = {
-  person: PersonItem;
-  isStudent: boolean;
-  onOptions: () => void;
-  colors: any;
-};
-
-const PersonListItem = ({ person, isStudent, onOptions, colors }: PersonItemProps) => {
+const PersonListItem = ({
+  person,
+  isStudent,
+  onOptions,
+  colors,
+  locationMap,
+  colorMap,
+}: PersonItemProps) => {
   const themedStyles = StyleSheet.create({
     itemContainer: {
       backgroundColor: colors.container,
       padding: 12,
       marginVertical: 1,
       marginHorizontal: 5,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      borderLeftColor: isStudent ? getGradeColor((person as Student).grade) : colors.textMuted,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      borderLeftColor: isStudent
+        ? colorMap[(person as Student).groupID] || "#6b7280"
+        : colors.textMuted,
       borderLeftWidth: 4,
     },
     itemText: {
       fontSize: 16,
       color: colors.text,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     itemLocation: {
       fontSize: 12,
@@ -203,16 +225,26 @@ const PersonListItem = ({ person, isStudent, onOptions, colors }: PersonItemProp
     },
     optionsButtonText: {
       fontSize: 12,
-      fontWeight: '600',
-      color: '#ffffff',
+      fontWeight: "600",
+      color: "#ffffff",
     },
   });
+
+  const getLocationName = (locID: string): string => {
+    return locationMap[locID] || locID;
+  };
 
   return (
     <TouchableOpacity style={themedStyles.itemContainer}>
       <View style={{ flex: 1 }}>
-        <Text style={themedStyles.itemText}>{person.firstName} {person.lastName}</Text>
-        <Text style={themedStyles.itemLocation}>{person.currentLocID === 'none' ? 'Not present' : getLocationName(person.currentLocID)}</Text>
+        <Text style={themedStyles.itemText}>
+          {person.firstName} {person.lastName}
+        </Text>
+        <Text style={themedStyles.itemLocation}>
+          {person.currentLocID === "none"
+            ? "Not present"
+            : getLocationName(person.currentLocID)}
+        </Text>
       </View>
       <TouchableOpacity style={themedStyles.optionsButton} onPress={onOptions}>
         <Text style={themedStyles.optionsButtonText}>Options</Text>
@@ -241,19 +273,19 @@ const OptionsModal = ({
   const themedStyles = StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      justifyContent: "center",
+      alignItems: "center",
     },
     optionsModalContent: {
       backgroundColor: colors.container,
       borderRadius: 12,
       padding: 20,
-      width: '80%',
+      width: "80%",
       maxWidth: 400,
     },
     closeButton: {
-      position: 'absolute',
+      position: "absolute",
       top: 10,
       right: 10,
       padding: 10,
@@ -264,7 +296,7 @@ const OptionsModal = ({
     },
     modalTitle: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text,
       marginBottom: 16,
       marginTop: 8,
@@ -274,45 +306,61 @@ const OptionsModal = ({
       paddingVertical: 12,
       marginVertical: 8,
       borderRadius: 6,
-      alignItems: 'center',
+      alignItems: "center",
     },
     optionText: {
       fontSize: 16,
-      fontWeight: '600',
-      color: '#ffffff',
+      fontWeight: "600",
+      color: "#ffffff",
     },
     cancelButton: {
       backgroundColor: colors.red,
     },
     cancelText: {
       fontSize: 16,
-      fontWeight: '600',
-      color: '#ffffff',
+      fontWeight: "600",
+      color: "#ffffff",
     },
   });
 
   const isPresent = person?.present ?? true;
-  const buttonText = isPresent ? 'Mark Absent' : 'Mark Present';
+  const buttonText = isPresent ? "Mark Absent" : "Mark Present";
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View style={themedStyles.modalOverlay}>
         <View style={themedStyles.optionsModalContent}>
           <TouchableOpacity style={themedStyles.closeButton} onPress={onClose}>
             <Text style={themedStyles.closeButtonText}>✕</Text>
           </TouchableOpacity>
 
-          <Text style={themedStyles.modalTitle}>{person ? `${person.firstName} ${person.lastName}` : ''}</Text>
+          <Text style={themedStyles.modalTitle}>
+            {person ? `${person.firstName} ${person.lastName}` : ""}
+          </Text>
 
-          <TouchableOpacity style={themedStyles.optionButton} onPress={onTogglePresence}>
+          <TouchableOpacity
+            style={themedStyles.optionButton}
+            onPress={onTogglePresence}
+          >
             <Text style={themedStyles.optionText}>{buttonText}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={themedStyles.optionButton} onPress={onViewProfile}>
+          <TouchableOpacity
+            style={themedStyles.optionButton}
+            onPress={onViewProfile}
+          >
             <Text style={themedStyles.optionText}>View Profile</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[themedStyles.optionButton, themedStyles.cancelButton]} onPress={onClose}>
+          <TouchableOpacity
+            style={[themedStyles.optionButton, themedStyles.cancelButton]}
+            onPress={onClose}
+          >
             <Text style={themedStyles.cancelText}>Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -327,61 +375,67 @@ const ProfileModal = ({
   isStudent,
   onClose,
   colors,
+  colorMap,
+  labelMap,
 }: {
   visible: boolean;
   person: PersonItem | null;
   isStudent: boolean;
   onClose: () => void;
   colors: any;
+  colorMap: { [key: string]: string };
+  labelMap: { [key: string]: string };
 }) => {
   if (!person) return null;
   const student = person as Student;
-  const daysText = student.days?.join(', ') || 'N/A';
-  const borderColor = isStudent ? getGradeColor(student.grade) : colors.textMuted;
+  const daysText = student.days?.join(", ") || "N/A";
+  const borderColor = isStudent
+    ? colorMap[(student as Student).groupID] || "#6b7280"
+    : colors.textMuted;
 
   const themedStyles = StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      justifyContent: "center",
+      alignItems: "center",
     },
     profileModalContent: {
       backgroundColor: colors.container,
       borderRadius: 12,
       padding: 20,
-      width: '85%',
-      maxHeight: '80%',
+      width: "85%",
+      maxHeight: "80%",
     },
     closeButton: {
-      position: 'absolute',
+      position: "absolute",
       top: 12,
       right: 12,
       width: 36,
       height: 36,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       borderRadius: 18,
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
     },
     closeButtonText: {
       fontSize: 24,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: colors.text,
     },
     profileTitle: {
       fontSize: 20,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: colors.text,
       marginBottom: 20,
       marginTop: 10,
-      textAlign: 'center',
+      textAlign: "center",
     },
     profileInfo: {
       maxHeight: 400,
     },
     profileRow: {
-      flexDirection: 'row',
+      flexDirection: "row",
       paddingVertical: 10,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
@@ -389,7 +443,7 @@ const ProfileModal = ({
     profileLabel: {
       fontSize: 14,
       color: colors.textMuted,
-      fontWeight: '600',
+      fontWeight: "600",
       width: 100,
     },
     profileValue: {
@@ -400,14 +454,26 @@ const ProfileModal = ({
   });
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View style={themedStyles.modalOverlay}>
-        <View style={[themedStyles.profileModalContent, { borderColor: `${borderColor}90`, borderWidth: 3 }]}>
+        <View
+          style={[
+            themedStyles.profileModalContent,
+            { borderColor: `${borderColor}90`, borderWidth: 3 },
+          ]}
+        >
           <TouchableOpacity style={themedStyles.closeButton} onPress={onClose}>
             <Text style={themedStyles.closeButtonText}>✕</Text>
           </TouchableOpacity>
 
-          <Text style={themedStyles.profileTitle}>{person.firstName} {person.lastName}</Text>
+          <Text style={themedStyles.profileTitle}>
+            {person.firstName} {person.lastName}
+          </Text>
 
           <ScrollView style={themedStyles.profileInfo}>
             {isStudent && (
@@ -417,18 +483,24 @@ const ProfileModal = ({
                   <Text style={themedStyles.profileValue}>{daysText}</Text>
                 </View>
                 <View style={themedStyles.profileRow}>
-                  <Text style={themedStyles.profileLabel}>Grade:</Text>
-                  <Text style={themedStyles.profileValue}>{getGradeLabel(student.grade)}</Text>
+                  <Text style={themedStyles.profileLabel}>Group:</Text>
+                  <Text style={themedStyles.profileValue}>
+                    {labelMap[student.groupID] || "Unknown"}
+                  </Text>
                 </View>
                 <View style={themedStyles.profileRow}>
                   <Text style={themedStyles.profileLabel}>Medication:</Text>
-                  <Text style={themedStyles.profileValue}>{student.hasMeds ? 'Yes' : 'No'}</Text>
+                  <Text style={themedStyles.profileValue}>
+                    {student.hasMeds ? "Yes" : "No"}
+                  </Text>
                 </View>
               </>
             )}
             <View style={themedStyles.profileRow}>
               <Text style={themedStyles.profileLabel}>Location:</Text>
-              <Text style={themedStyles.profileValue}>{person.currentLocID === 'none' ? 'N/A' : person.currentLocID}</Text>
+              <Text style={themedStyles.profileValue}>
+                {person.currentLocID === "none" ? "N/A" : person.currentLocID}
+              </Text>
             </View>
             <View style={themedStyles.profileRow}>
               <Text style={themedStyles.profileLabel}>DOB:</Text>
@@ -452,11 +524,15 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
   const [showTeachers, setShowTeachers] = useState(false);
   const [showPresent, setShowPresent] = useState(true);
-  const [selectedGrades, setSelectedGrades] = useState<Set<number>>(new Set([2, 3, 4]));
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
+  const [groupIds, setGroupIds] = useState<string[]>([]);
   const [optionsModalVisible, setOptionsModalVisible] = useState(false);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<PersonItem | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [locationMap, setLocationMap] = useState<{ [key: string]: string }>({});
+  const [colorMap, setColorMap] = useState<{ [key: string]: string }>({});
+  const [labelMap, setLabelMap] = useState<{ [key: string]: string }>({});
 
   const themedStyles = StyleSheet.create({
     container: {
@@ -482,10 +558,36 @@ export default function Index() {
       await initializeStuData();
       const stuArray = await getStuArray();
       const teaArray = await getTeaArray();
+      const locations = await getLocArray();
+
+      // Create locationMap from locations
+      const map: { [key: string]: string } = {};
+      locations.forEach((loc) => {
+        map[loc.id] = loc.locationName;
+      });
+      setLocationMap(map);
+
+      // Load color and label maps from settings
+      const gruArray = await getGruArray();
+      const colors: { [key: string]: string } = {};
+      const labels: { [key: string]: string } = {};
+      const ids: string[] = [];
+
+      for (const group of gruArray) {
+        colors[group.id] = group.color || "#6b7280";
+        labels[group.id] = group.name || "Unknown Group";
+        ids.push(group.id);
+      }
+
+      setColorMap(colors);
+      setLabelMap(labels);
+      setGroupIds(ids);
+      setSelectedGroups(new Set(ids));
+
       setAllStudents(stuArray);
       setAllTeachers(teaArray);
     } catch (err) {
-      console.error('Failed to load data:', err);
+      console.error("Failed to load data:", err);
     } finally {
       setLoading(false);
     }
@@ -498,7 +600,7 @@ export default function Index() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [loadData])
+    }, [loadData]),
   );
 
   const filteredData = showTeachers
@@ -507,19 +609,25 @@ export default function Index() {
         .filter((t) => {
           if (!searchQuery.trim()) return true;
           const query = searchQuery.toLowerCase();
-          return t.firstName.toLowerCase().includes(query) || t.lastName.toLowerCase().includes(query);
+          return (
+            t.firstName.toLowerCase().includes(query) ||
+            t.lastName.toLowerCase().includes(query)
+          );
         })
         .sort((a, b) => {
           const fnCmp = a.firstName.localeCompare(b.firstName);
           return fnCmp !== 0 ? fnCmp : a.lastName.localeCompare(b.lastName);
         })
     : allStudents
-        .filter((s) => selectedGrades.has(s.grade))
+        .filter((s) => selectedGroups.has(s.groupID))
         .filter((s) => s.present === showPresent)
         .filter((s) => {
           if (!searchQuery.trim()) return true;
           const query = searchQuery.toLowerCase();
-          return s.firstName.toLowerCase().includes(query) || s.lastName.toLowerCase().includes(query);
+          return (
+            s.firstName.toLowerCase().includes(query) ||
+            s.lastName.toLowerCase().includes(query)
+          );
         })
         .sort((a, b) => {
           const fnCmp = a.firstName.localeCompare(b.firstName);
@@ -527,10 +635,11 @@ export default function Index() {
         });
 
   const displayStudentCount = allStudents
-    .filter((s) => selectedGrades.has(s.grade))
+    .filter((s) => selectedGroups.has(s.groupID))
     .filter((s) => s.present === showPresent).length;
-  const displayTeacherCount = allTeachers
-    .filter((t) => t.present === showPresent).length;
+  const displayTeacherCount = allTeachers.filter(
+    (t) => t.present === showPresent,
+  ).length;
 
   const handleOptions = (person: PersonItem) => {
     setSelectedPerson(person);
@@ -541,32 +650,32 @@ export default function Index() {
     if (!selectedPerson) return;
 
     try {
-      const isStudent = 'grade' in selectedPerson;
+      const isStudent = "groupID" in selectedPerson;
       const isCurrentlyPresent = selectedPerson.present;
 
       if (isCurrentlyPresent) {
         // Mark as absent
         if (isStudent) {
-          await markStuAbsent(selectedPerson.id);
+          await updateStuAbsent(selectedPerson.id);
         } else {
-          await markTeaAbsent(selectedPerson.id);
+          await updateTeaAbsent(selectedPerson.id);
         }
       } else {
         // Mark as present - need to get the default location
         const locations = await getLocArray();
-        const defaultLoc = locations.find(l => l.isDefault);
-        const defaultLocID = defaultLoc?.id || 'loc001';
+        const defaultLoc = locations.find((l) => l.isDefault);
+        const defaultLocID = defaultLoc?.id || "loc001";
 
         if (isStudent) {
-          await markStuPresent(selectedPerson.id, defaultLocID);
+          await updateStuPresent(selectedPerson.id);
         } else {
-          await markTeaPresent(selectedPerson.id, defaultLocID);
+          await updateTeaPresent(selectedPerson.id);
         }
       }
 
       await loadData();
     } catch (err) {
-      console.error('Failed to toggle presence:', err);
+      console.error("Failed to toggle presence:", err);
     }
     setOptionsModalVisible(false);
   };
@@ -576,20 +685,20 @@ export default function Index() {
     setProfileModalVisible(true);
   };
 
-  const handleToggleGrade = (grade: number) => {
-    const newGrades = new Set(selectedGrades);
-    if (newGrades.has(grade)) {
-      newGrades.delete(grade);
+  const handleToggleGroup = (groupID: string) => {
+    const newGroups = new Set(selectedGroups);
+    if (newGroups.has(groupID)) {
+      newGroups.delete(groupID);
     } else {
-      newGrades.add(grade);
+      newGroups.add(groupID);
     }
-    setSelectedGrades(newGrades);
+    setSelectedGroups(newGroups);
   };
 
   if (loading) return <Text>Loading...</Text>;
 
-  const totalStudents = filteredData.filter((p) => 'grade' in p).length;
-  const totalTeachers = filteredData.filter((p) => !('grade' in p)).length;
+  const totalStudents = filteredData.filter((p) => "groupID" in p).length;
+  const totalTeachers = filteredData.filter((p) => !("groupID" in p)).length;
 
   return (
     <SafeAreaProvider>
@@ -601,9 +710,12 @@ export default function Index() {
           onToggleTeachers={setShowTeachers}
           showPresent={showPresent}
           onTogglePresent={setShowPresent}
-          selectedGrades={selectedGrades}
-          onToggleGrade={handleToggleGrade}
+          selectedGroups={selectedGroups}
+          onToggleGroup={handleToggleGroup}
           colors={colors}
+          colorMap={colorMap}
+          labelMap={labelMap}
+          groupIds={groupIds}
         />
         <TextInput
           style={themedStyles.searchBar}
@@ -617,9 +729,11 @@ export default function Index() {
           renderItem={({ item }) => (
             <PersonListItem
               person={item}
-              isStudent={'grade' in item}
+              isStudent={"groupID" in item}
               onOptions={() => handleOptions(item)}
               colors={colors}
+              locationMap={locationMap}
+              colorMap={colorMap}
             />
           )}
           keyExtractor={(item) => item.id}
@@ -627,7 +741,7 @@ export default function Index() {
         <OptionsModal
           visible={optionsModalVisible}
           person={selectedPerson}
-          isStudent={selectedPerson ? 'grade' in selectedPerson : false}
+          isStudent={selectedPerson ? "groupID" in selectedPerson : false}
           onClose={() => setOptionsModalVisible(false)}
           onTogglePresence={handleTogglePresence}
           onViewProfile={handleViewProfile}
@@ -636,9 +750,11 @@ export default function Index() {
         <ProfileModal
           visible={profileModalVisible}
           person={selectedPerson}
-          isStudent={selectedPerson ? 'grade' in selectedPerson : false}
+          isStudent={selectedPerson ? "groupID" in selectedPerson : false}
           onClose={() => setProfileModalVisible(false)}
           colors={colors}
+          colorMap={colorMap}
+          labelMap={labelMap}
         />
       </SafeAreaView>
     </SafeAreaProvider>
