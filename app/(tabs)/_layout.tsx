@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { Tabs } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -12,6 +12,7 @@ import { useTheme } from "../../constants/ThemeContext";
 
 export default function TabsLayout() {
   const { colors } = useTheme();
+  const navigation = useNavigation();
 
   // Load active locations from AsyncStorage.
   const [locations, setLocations] = useState<Location[]>([]);
@@ -32,11 +33,14 @@ export default function TabsLayout() {
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
+  // Listen for any navigation state change to reload siteName
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("state", () => {
       loadSiteName();
-    }, [loadSiteName]),
-  );
+    });
+
+    return unsubscribe;
+  }, [navigation, loadSiteName]);
 
   useEffect(() => {
     async function loadLocations() {
